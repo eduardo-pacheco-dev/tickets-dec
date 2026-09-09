@@ -108,7 +108,7 @@ $greeting = now()->hour >= 18
             </div>
 
             {{-- ═══ Estatísticas ═══ --}}
-            <div class="grid grid-cols-2 gap-3 sm:gap-4 {{ $role->canManageUsers() ? 'sm:grid-cols-3 xl:grid-cols-6' : 'sm:grid-cols-2 xl:grid-cols-4' }}">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
                 @foreach ($stats as $stat)
                     <a href="{{ $stat['href'] }}" wire:navigate class="transition hover:opacity-90">
                         <flux:card class="flex items-center gap-3 sm:gap-4">
