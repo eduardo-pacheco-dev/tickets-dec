@@ -36,6 +36,17 @@ new class extends Component
         return UserRole::cases();
     }
 
+    #[Computed]
+    public function roleDotColors(): array
+    {
+        return [
+            'admin' => 'bg-red-500',
+            'operator' => 'bg-blue-500',
+            'supervisor' => 'bg-purple-500',
+            'client' => 'bg-zinc-400',
+        ];
+    }
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -66,107 +77,165 @@ new class extends Component
 ?>
 
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <flux:heading size="lg">Usuários</flux:heading>
-        <div class="flex items-center gap-3">
-            <flux:text class="text-sm text-gray-500">{{ $this->counts['total'] }} usuários no total</flux:text>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <flux:heading size="lg">Usuários</flux:heading>
+            <flux:text class="mt-1">Gerencie as contas do painel e defina o perfil de acesso de cada pessoa.</flux:text>
+            <flux:text class="mt-2 text-sm font-medium">{{ $this->counts['total'] }} usuários no total</flux:text>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            @if ($this->role !== null || $this->search !== '')
+                <flux:button variant="subtle" size="sm" wire:click="$set('search', ''); $set('role', null)">
+                    Limpar filtros
+                </flux:button>
+            @endif
+
             <flux:button :href="route('admin.users.create')" variant="primary" icon="plus" wire:navigate>
                 Novo Usuário
             </flux:button>
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <button
-            wire:click="$set('role', null)"
-            class="rounded-xl border p-4 text-left transition {{ $this->role === null ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
+    <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div
+            role="group"
+            aria-label="Filtrar por perfil"
+            class="flex flex-wrap items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-800/70"
         >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Todos</flux:text>
-            <div class="mt-1 text-2xl font-bold">{{ $this->counts['total'] }}</div>
-        </button>
-        <button
-            wire:click="$set('role', 'admin')"
-            class="rounded-xl border p-4 text-left transition {{ $this->role === 'admin' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
-        >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Admin</flux:text>
-            <div class="mt-1 text-2xl font-bold text-red-600">{{ $this->counts['admin'] }}</div>
-        </button>
-        <button
-            wire:click="$set('role', 'operator')"
-            class="rounded-xl border p-4 text-left transition {{ $this->role === 'operator' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
-        >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Operador</flux:text>
-            <div class="mt-1 text-2xl font-bold text-blue-600">{{ $this->counts['operator'] }}</div>
-        </button>
-        <button
-            wire:click="$set('role', 'supervisor')"
-            class="rounded-xl border p-4 text-left transition {{ $this->role === 'supervisor' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
-        >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Supervisor</flux:text>
-            <div class="mt-1 text-2xl font-bold text-purple-600">{{ $this->counts['supervisor'] }}</div>
-        </button>
-        <button
-            wire:click="$set('role', 'client')"
-            class="rounded-xl border p-4 text-left transition {{ $this->role === 'client' ? 'border-gray-500 bg-gray-50 dark:bg-gray-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
-        >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Cliente</flux:text>
-            <div class="mt-1 text-2xl font-bold text-gray-600">{{ $this->counts['client'] }}</div>
-        </button>
+            @php
+                $filterButtonClasses = fn ($active) => 'inline-flex h-9 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-400 dark:focus-visible:outline-zinc-500 ' . ($active
+                    ? 'bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900'
+                    : 'text-zinc-500 hover:bg-zinc-200/40 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white');
+            @endphp
+
+            <button
+                type="button"
+                wire:key="filter-all"
+                wire:click="$set('role', null)"
+                aria-pressed="{{ $this->role === null ? 'true' : 'false' }}"
+                class="{{ $filterButtonClasses($this->role === null) }}"
+            >
+                Todos
+                <span class="text-xs font-semibold tracking-tight">{{ $this->counts['total'] }}</span>
+            </button>
+
+            @foreach ($this->roles as $roleOption)
+                <button
+                    type="button"
+                    wire:key="filter-{{ $roleOption->value }}"
+                    wire:click="$set('role', '{{ $roleOption->value }}')"
+                    aria-pressed="{{ $this->role === $roleOption->value ? 'true' : 'false' }}"
+                    class="{{ $filterButtonClasses($this->role === $roleOption->value) }}"
+                >
+                    <span class="size-1.5 shrink-0 rounded-full {{ $this->roleDotColors[$roleOption->value] }}"></span>
+                    {{ $roleOption->label() }}
+                    <span class="text-xs font-semibold tracking-tight">{{ $this->counts[$roleOption->value] }}</span>
+                </button>
+            @endforeach
+        </div>
+
+        <div class="w-full lg:w-80">
+            <flux:input
+                wire:model.live="search"
+                clearable
+                icon="magnifying-glass"
+                placeholder="Buscar por nome ou email..."
+            />
+        </div>
     </div>
 
-    <flux:input
-        wire:model.live="search"
-        placeholder="Buscar por nome ou email..."
-        icon="magnifying-glass"
-    />
+    @if ($this->counts['total'] === 0)
+        <flux:card class="py-16 text-center">
+            <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
+                <flux:icon name="users" class="size-6" />
+            </div>
+            <flux:heading size="lg" class="mt-4">Nenhum usuário ainda</flux:heading>
+            <flux:text class="mt-1">Crie a primeira conta para começar a gerenciar o acesso ao painel.</flux:text>
+            <div class="mt-5">
+                <flux:button :href="route('admin.users.create')" variant="primary" icon="plus" wire:navigate>
+                    Novo Usuário
+                </flux:button>
+            </div>
+        </flux:card>
+    @else
+        <flux:card class="overflow-hidden">
+            <flux:table bleed :paginate="$this->users">
+                <flux:table.columns>
+                    <flux:table.column scope="col">Usuário</flux:table.column>
+                    <flux:table.column scope="col">Email</flux:table.column>
+                    <flux:table.column scope="col">Perfil</flux:table.column>
+                    <flux:table.column scope="col">Criado em</flux:table.column>
+                    <flux:table.column scope="col" class="w-px"></flux:table.column>
+                </flux:table.columns>
 
-    <div class="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Nome</flux:table.column>
-                <flux:table.column>Email</flux:table.column>
-                <flux:table.column>Role</flux:table.column>
-                <flux:table.column>Criado em</flux:table.column>
-                <flux:table.column></flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse ($this->users as $user)
-                    <flux:table.row wire:key="user-{{ $user->id }}">
-                        <flux:table.cell>
-                            <div class="flex items-center gap-3">
-                                <flux:avatar :name="$user->name" size="sm" />
-                                <span class="font-medium">{{ $user->name }}</span>
-                            </div>
-                        </flux:table.cell>
-                        <flux:table.cell>{{ $user->email }}</flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge color="{{ $user->role->color() }}">
-                                {{ $user->role->label() }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell>{{ $user->created_at->format('d/m/Y H:i') }}</flux:table.cell>
-                        <flux:table.cell>
-                            <flux:button
-                                variant="ghost"
-                                size="sm"
-                                :href="route('admin.users.show', $user)"
-                                wire:navigate
-                            >
-                                Ver detalhes
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="5" class="text-center">
-                            <flux:text class="py-8 text-gray-500">Nenhum usuário encontrado.</flux:text>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-    </div>
-
-    {{ $this->users->links() }}
+                <flux:table.rows>
+                    @forelse ($this->users as $user)
+                        <flux:table.row
+                            wire:key="user-{{ $user->id }}"
+                            class="transition-colors hover:bg-zinc-50 dark:hover:bg-white/[3%]"
+                        >
+                            <flux:table.cell>
+                                <div class="flex items-center gap-3">
+                                    <flux:avatar :name="$user->name" size="sm" />
+                                    <a
+                                        href="{{ route('admin.users.show', $user) }}"
+                                        wire:navigate
+                                        class="inline-flex items-center gap-2 text-sm font-semibold underline-offset-2 hover:underline"
+                                    >
+                                        {{ $user->name }}
+                                        @if ($user->id === auth()->id())
+                                            <span class="text-xs font-normal text-zinc-400 dark:text-zinc-500">(você)</span>
+                                        @endif
+                                    </a>
+                                </div>
+                            </flux:table.cell>
+                            <flux:table.cell>{{ $user->email }}</flux:table.cell>
+                            <flux:table.cell>
+                                <flux:badge color="{{ $user->role->color() }}" size="sm">
+                                    {{ $user->role->label() }}
+                                </flux:badge>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <div>{{ $user->created_at->format('d/m/Y') }}</div>
+                                <div class="text-xs text-zinc-400 dark:text-zinc-500">{{ $user->created_at->format('H:i') }}</div>
+                            </flux:table.cell>
+                            <flux:table.cell align="end">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon-only
+                                    icon="arrow-right"
+                                    :href="route('admin.users.show', $user)"
+                                    wire:navigate
+                                    :aria-label="'Ver usuário ' . $user->name"
+                                />
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="5" align="center">
+                                <div class="py-12">
+                                    <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
+                                        <flux:icon name="magnifying-glass" class="size-5" />
+                                    </div>
+                                    <flux:heading size="sm" class="mt-3">Nenhum usuário encontrado</flux:heading>
+                                    <flux:text class="mt-1">Nenhum registro corresponde à busca ou aos filtros aplicados.</flux:text>
+                                    <div class="mt-4">
+                                        <flux:button
+                                            variant="subtle"
+                                            size="sm"
+                                            wire:click="$set('search', ''); $set('role', null)"
+                                        >
+                                            Limpar filtros
+                                        </flux:button>
+                                    </div>
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
+    @endif
 </div>
