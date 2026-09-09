@@ -2,6 +2,11 @@
 
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
+use App\Models\User;
+use App\Notifications\TicketResponseSavedNotification;
+use App\Notifications\TicketStatusUpdatedNotification;
+use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
 use Livewire\Component;
 
 new class extends Component
@@ -29,6 +34,12 @@ new class extends Component
             'admin_response' => $this->admin_response,
         ]);
 
+        $this->notifyStaff(new TicketResponseSavedNotification(
+            $this->ticket,
+            $this->admin_response,
+            auth()->user()->name,
+        ));
+
         $this->dispatch('response-saved');
     }
 
@@ -41,10 +52,18 @@ new class extends Component
         ]);
 
         $status = TicketStatus::from($this->new_status);
+        $oldStatus = $this->ticket->status;
 
         $this->ticket->update([
             'status' => $status,
         ]);
+
+        $this->notifyStaff(new TicketStatusUpdatedNotification(
+            $this->ticket,
+            $oldStatus,
+            $status,
+            auth()->user()->name,
+        ));
 
         $this->dispatch('status-updated');
     }
@@ -56,6 +75,17 @@ new class extends Component
         if (! $user->role->canManageTickets()) {
             abort(403);
         }
+    }
+
+    private function notifyStaff(Notification $notification): void
+    {
+        $recipients = User::query()->ticketStaff()->whereKeyNot(auth()->id())->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        NotificationFacade::send($recipients, $notification);
     }
 };
 ?>

@@ -19,6 +19,9 @@
                         <flux:sidebar.item icon="ticket" :href="route('admin.tickets.index')" :current="request()->routeIs('admin.tickets.*')" wire:navigate>
                             {{ __('Tickets') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="bell" :href="route('admin.notifications.index')" :current="request()->routeIs('admin.notifications.*')" wire:navigate>
+                            {{ __('Notificações') }}
+                        </flux:sidebar.item>
                     @endif
                     @if (auth()->user()?->role?->canManageUsers())
                         <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
@@ -31,6 +34,10 @@
             <flux:spacer />
 
             @auth
+                <flux:sidebar.nav>
+                    <livewire:notification-bell display="sidebar" />
+                </flux:sidebar.nav>
+
                 <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
             @else
                 <flux:sidebar.item icon="user-circle" :href="route('login')" wire:navigate class="hidden lg:flex">
@@ -46,6 +53,8 @@
             <flux:spacer />
 
             @auth
+                <livewire:notification-bell display="header" />
+
                 <flux:dropdown position="top" align="end">
                     <flux:profile
                         :initials="auth()->user()->initials()"

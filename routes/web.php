@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:admin,operator,supervisor')->group(function () {
         Route::livewire('admin/tickets', 'admin/ticket-list')->name('admin.tickets.index');
         Route::livewire('admin/tickets/{ticket}', 'admin/ticket-detail')->name('admin.tickets.show');
+        Route::livewire('admin/notifications', 'admin/notification-list')->name('admin.notifications.index');
     });
 
     Route::middleware('role:admin')->group(function () {

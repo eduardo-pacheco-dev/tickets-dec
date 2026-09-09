@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\Ticket;
+use App\Models\User;
+use App\Notifications\NewTicketNotification;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -32,6 +35,12 @@ new #[Layout('layouts::public')] class extends Component
             'report_description' => $this->report_description,
             'checked_in' => $this->checked_in,
         ]);
+
+        $recipients = User::query()->ticketStaff()->get();
+
+        if ($recipients->isNotEmpty()) {
+            Notification::send($recipients, new NewTicketNotification($ticket));
+        }
 
         $this->tracking_code = $ticket->tracking_code;
 
