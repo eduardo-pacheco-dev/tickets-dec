@@ -35,6 +35,16 @@ new class extends Component
         return TicketStatus::cases();
     }
 
+    #[Computed]
+    public function statusDotColors(): array
+    {
+        return [
+            'aberto' => 'bg-amber-500',
+            'em_andamento' => 'bg-blue-500',
+            'resolvido' => 'bg-green-500',
+        ];
+    }
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -66,94 +76,161 @@ new class extends Component
 ?>
 
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <flux:heading size="lg">Tickets</flux:heading>
-        <flux:text class="text-sm text-gray-500">{{ $this->counts['total'] }} tickets no total</flux:text>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <flux:heading size="lg">Tickets</flux:heading>
+            <flux:text class="mt-1">Acompanhe os chamados registrados pelos técnicos e gerencie o atendimento.</flux:text>
+        </div>
+
+        @if ($this->status !== null || $this->search !== '')
+            <div>
+                <flux:button
+                    variant="subtle"
+                    size="sm"
+                    wire:click="$set('search', ''); $set('status', null)"
+                >
+                    Limpar filtros
+                </flux:button>
+            </div>
+        @endif
     </div>
 
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <button
-            wire:click="$set('status', null)"
-            class="rounded-xl border p-4 text-left transition {{ $this->status === null ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
+    <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div
+            role="group"
+            aria-label="Filtrar por status"
+            class="flex flex-wrap items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-800/70"
         >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Todos</flux:text>
-            <div class="mt-1 text-2xl font-bold">{{ $this->counts['total'] }}</div>
-        </button>
-        <button
-            wire:click="$set('status', 'aberto')"
-            class="rounded-xl border p-4 text-left transition {{ $this->status === 'aberto' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
-        >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Abertos</flux:text>
-            <div class="mt-1 text-2xl font-bold text-yellow-600">{{ $this->counts['aberto'] }}</div>
-        </button>
-        <button
-            wire:click="$set('status', 'em_andamento')"
-            class="rounded-xl border p-4 text-left transition {{ $this->status === 'em_andamento' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
-        >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Em Andamento</flux:text>
-            <div class="mt-1 text-2xl font-bold text-blue-600">{{ $this->counts['em_andamento'] }}</div>
-        </button>
-        <button
-            wire:click="$set('status', 'resolvido')"
-            class="rounded-xl border p-4 text-left transition {{ $this->status === 'resolvido' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-700' }}"
-        >
-            <flux:text class="text-xs font-medium uppercase text-gray-500">Resolvidos</flux:text>
-            <div class="mt-1 text-2xl font-bold text-green-600">{{ $this->counts['resolvido'] }}</div>
-        </button>
+            @php
+                $filterButtonClasses = fn ($active) => 'inline-flex h-9 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-400 dark:focus-visible:outline-zinc-500 ' . ($active
+                    ? 'bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900'
+                    : 'text-zinc-500 hover:bg-zinc-200/40 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white');
+            @endphp
+
+            <button
+                type="button"
+                wire:key="filter-all"
+                wire:click="$set('status', null)"
+                aria-pressed="{{ $this->status === null ? 'true' : 'false' }}"
+                class="{{ $filterButtonClasses($this->status === null) }}"
+            >
+                Todos
+                <span class="text-xs font-semibold tracking-tight">{{ $this->counts['total'] }}</span>
+            </button>
+
+            @foreach ($this->statuses as $status)
+                <button
+                    type="button"
+                    wire:key="filter-{{ $status->value }}"
+                    wire:click="$set('status', '{{ $status->value }}')"
+                    aria-pressed="{{ $this->status === $status->value ? 'true' : 'false' }}"
+                    class="{{ $filterButtonClasses($this->status === $status->value) }}"
+                >
+                    <span class="size-1.5 shrink-0 rounded-full {{ $this->statusDotColors[$status->value] }}"></span>
+                    {{ $status->label() }}
+                    <span class="text-xs font-semibold tracking-tight">{{ $this->counts[$status->value] }}</span>
+                </button>
+            @endforeach
+        </div>
+
+        <div class="w-full lg:w-80">
+            <flux:input
+                wire:model.live="search"
+                clearable
+                icon="magnifying-glass"
+                placeholder="Buscar por código, site ou técnico..."
+            />
+        </div>
     </div>
 
-    <flux:input
-        wire:model.live="search"
-        placeholder="Buscar por código, site ou técnico..."
-        icon="magnifying-glass"
-    />
+    @if ($this->counts['total'] === 0)
+        <flux:card class="py-16 text-center">
+            <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
+                <flux:icon name="ticket" class="size-6" />
+            </div>
+            <flux:heading size="lg" class="mt-4">Nenhum ticket ainda</flux:heading>
+            <flux:text class="mt-1">Os chamados abertos pelos técnicos aparecerão aqui assim que forem registrados.</flux:text>
+        </flux:card>
+    @else
+        <flux:card class="overflow-hidden">
+            <flux:table bleed :paginate="$this->tickets">
+                <flux:table.columns>
+                    <flux:table.column scope="col">Código</flux:table.column>
+                    <flux:table.column scope="col">Site</flux:table.column>
+                    <flux:table.column scope="col">Técnico</flux:table.column>
+                    <flux:table.column scope="col">Check-in</flux:table.column>
+                    <flux:table.column scope="col">Status</flux:table.column>
+                    <flux:table.column scope="col">Aberto em</flux:table.column>
+                    <flux:table.column scope="col" class="w-px"></flux:table.column>
+                </flux:table.columns>
 
-    <div class="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Código</flux:table.column>
-                <flux:table.column>Site ID</flux:table.column>
-                <flux:table.column>Técnico</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
-                <flux:table.column>Aberto em</flux:table.column>
-                <flux:table.column></flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse ($this->tickets as $ticket)
-                    <flux:table.row wire:key="ticket-{{ $ticket->id }}">
-                        <flux:table.cell>
-                            <span class="font-mono text-sm font-medium">{{ $ticket->tracking_code }}</span>
-                        </flux:table.cell>
-                        <flux:table.cell>{{ $ticket->site_id }}</flux:table.cell>
-                        <flux:table.cell>{{ $ticket->technician_name }}</flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge color="{{ $ticket->status->color() }}">
-                                {{ $ticket->status->label() }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell>{{ $ticket->created_at->format('d/m/Y H:i') }}</flux:table.cell>
-                        <flux:table.cell>
-                            <flux:button
-                                variant="ghost"
-                                size="sm"
-                                :href="route('admin.tickets.show', $ticket)"
-                                wire:navigate
-                            >
-                                Ver detalhes
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="6" class="text-center">
-                            <flux:text class="py-8 text-gray-500">Nenhum ticket encontrado.</flux:text>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-    </div>
-
-    {{ $this->tickets->links() }}
+                <flux:table.rows>
+                    @forelse ($this->tickets as $ticket)
+                        <flux:table.row
+                            wire:key="ticket-{{ $ticket->id }}"
+                            class="transition-colors hover:bg-zinc-50 dark:hover:bg-white/[3%]"
+                        >
+                            <flux:table.cell variant="strong">
+                                <a
+                                    href="{{ route('admin.tickets.show', $ticket) }}"
+                                    wire:navigate
+                                    class="font-mono text-sm font-semibold underline-offset-2 hover:underline"
+                                >{{ $ticket->tracking_code }}</a>
+                            </flux:table.cell>
+                            <flux:table.cell>{{ $ticket->site_id }}</flux:table.cell>
+                            <flux:table.cell>{{ $ticket->technician_name }}</flux:table.cell>
+                            <flux:table.cell>
+                                @if ($ticket->checked_in)
+                                    <flux:badge color="emerald" size="sm">Feito</flux:badge>
+                                @else
+                                    <flux:badge size="sm">Pendente</flux:badge>
+                                @endif
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:badge color="{{ $ticket->status->color() }}" size="sm">
+                                    {{ $ticket->status->label() }}
+                                </flux:badge>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <div>{{ $ticket->created_at->format('d/m/Y') }}</div>
+                                <div class="text-xs text-zinc-400 dark:text-zinc-500">{{ $ticket->created_at->format('H:i') }}</div>
+                            </flux:table.cell>
+                            <flux:table.cell align="end">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon-only
+                                    icon="arrow-right"
+                                    :href="route('admin.tickets.show', $ticket)"
+                                    wire:navigate
+                                    :aria-label="'Ver ticket ' . $ticket->tracking_code"
+                                />
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="7" align="center">
+                                <div class="py-12">
+                                    <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
+                                        <flux:icon name="magnifying-glass" class="size-5" />
+                                    </div>
+                                    <flux:heading size="sm" class="mt-3">Nenhum ticket encontrado</flux:heading>
+                                    <flux:text class="mt-1">Nenhum registro corresponde à busca ou aos filtros aplicados.</flux:text>
+                                    <div class="mt-4">
+                                        <flux:button
+                                            variant="subtle"
+                                            size="sm"
+                                            wire:click="$set('search', ''); $set('status', null)"
+                                        >
+                                            Limpar filtros
+                                        </flux:button>
+                                    </div>
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
+    @endif
 </div>
