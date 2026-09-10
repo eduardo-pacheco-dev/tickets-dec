@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\TicketTrackingController;
 use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', 'ticket-form')->name('home');
 Route::redirect('abrir-ticket', '/');
 
-Route::livewire('acompanhar-ticket', 'ticket-status')->name('tickets.status');
+Route::get('acompanhar-ticket', [TicketTrackingController::class, 'show'])->name('tickets.status');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
