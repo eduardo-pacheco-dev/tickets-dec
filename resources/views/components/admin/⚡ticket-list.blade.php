@@ -59,6 +59,7 @@ new class extends Component
     public function tickets(): LengthAwarePaginator
     {
         return Ticket::query()
+            ->with('reportType')
             ->when($this->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('tracking_code', 'like', "%{$search}%")
@@ -158,6 +159,7 @@ new class extends Component
                     <flux:table.column scope="col">Código</flux:table.column>
                     <flux:table.column scope="col">Site</flux:table.column>
                     <flux:table.column scope="col">Técnico</flux:table.column>
+                    <flux:table.column scope="col">Relatório</flux:table.column>
                     <flux:table.column scope="col">Check-in</flux:table.column>
                     <flux:table.column scope="col">Status</flux:table.column>
                     <flux:table.column scope="col">Aberto em</flux:table.column>
@@ -179,6 +181,13 @@ new class extends Component
                             </flux:table.cell>
                             <flux:table.cell>{{ $ticket->site_id }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->technician_name }}</flux:table.cell>
+                            <flux:table.cell>
+                                @if ($ticket->reportType)
+                                    <flux:badge color="blue" size="sm">{{ $ticket->reportType->name }}</flux:badge>
+                                @else
+                                    <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">—</flux:text>
+                                @endif
+                            </flux:table.cell>
                             <flux:table.cell>
                                 @if ($ticket->checked_in)
                                     <flux:badge color="emerald" size="sm">Feito</flux:badge>
@@ -209,7 +218,7 @@ new class extends Component
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="7" align="center">
+                            <flux:table.cell colspan="8" align="center">
                                 <div class="py-12">
                                     <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                                         <flux:icon name="magnifying-glass" class="size-5" />

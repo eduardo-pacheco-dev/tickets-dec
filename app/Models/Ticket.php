@@ -7,6 +7,7 @@ use Database\Factories\TicketFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -15,14 +16,16 @@ use Illuminate\Support\Str;
  * @property string $tracking_code
  * @property string $site_id
  * @property string $technician_name
+ * @property int|null $report_type_id
  * @property string $report_description
  * @property bool $checked_in
  * @property TicketStatus $status
  * @property string|null $admin_response
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read ReportType|null $reportType
  */
-#[Fillable(['site_id', 'technician_name', 'report_description', 'checked_in', 'status', 'admin_response'])]
+#[Fillable(['site_id', 'technician_name', 'report_type_id', 'report_description', 'checked_in', 'status', 'admin_response'])]
 class Ticket extends Model
 {
     /** @use HasFactory<TicketFactory> */
@@ -33,7 +36,13 @@ class Ticket extends Model
         return [
             'status' => TicketStatus::class,
             'checked_in' => 'boolean',
+            'report_type_id' => 'integer',
         ];
+    }
+
+    public function reportType(): BelongsTo
+    {
+        return $this->belongsTo(ReportType::class);
     }
 
     protected static function booted(): void

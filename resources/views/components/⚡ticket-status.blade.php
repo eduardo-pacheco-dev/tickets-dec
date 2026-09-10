@@ -85,7 +85,12 @@ new #[Layout('layouts::public')] class extends Component
 
             <div>
                 <flux:text class="text-xs font-medium uppercase text-gray-500">Relatório Solicitado</flux:text>
-                <flux:text class="mt-1">{{ $this->ticket->report_description }}</flux:text>
+                @if ($this->ticket->reportType)
+                    <flux:badge color="blue" size="sm" class="mt-1">{{ $this->ticket->reportType->name }}</flux:badge>
+                @endif
+                @if ($this->ticket->report_description)
+                    <flux:text class="mt-1">{{ $this->ticket->report_description }}</flux:text>
+                @endif
             </div>
 
             @if ($this->ticket->admin_response)

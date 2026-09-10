@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\ReportType;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Notifications\NewTicketNotification;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -11,16 +13,26 @@ new #[Layout('layouts::public')] class extends Component
 {
     public string $site_id = '';
     public string $technician_name = '';
+    public ?int $report_type_id = null;
     public string $report_description = '';
     public bool $checked_in = false;
     public ?string $tracking_code = null;
 
+    #[Computed]
+    public function reportTypes()
+    {
+        return ReportType::query()->active()->orderBy('sort_order')->orderBy('name')->get();
+    }
+
     protected function rules(): array
     {
+        $hasReportTypes = ReportType::query()->active()->exists();
+
         return [
             'site_id' => ['required', 'string', 'max:255'],
             'technician_name' => ['required', 'string', 'max:255'],
-            'report_description' => ['required', 'string', 'max:2000'],
+            'report_type_id' => $hasReportTypes ? ['nullable', 'exists:report_types,id'] : ['nullable'],
+            'report_description' => $hasReportTypes ? ['nullable', 'string', 'max:2000'] : ['required', 'string', 'max:2000'],
             'checked_in' => ['boolean'],
         ];
     }
@@ -32,6 +44,7 @@ new #[Layout('layouts::public')] class extends Component
         $ticket = Ticket::create([
             'site_id' => $this->site_id,
             'technician_name' => $this->technician_name,
+            'report_type_id' => $this->report_type_id,
             'report_description' => $this->report_description,
             'checked_in' => $this->checked_in,
         ]);
@@ -44,7 +57,7 @@ new #[Layout('layouts::public')] class extends Component
 
         $this->tracking_code = $ticket->tracking_code;
 
-        $this->reset(['site_id', 'technician_name', 'report_description', 'checked_in']);
+        $this->reset(['site_id', 'technician_name', 'report_type_id', 'report_description', 'checked_in']);
 
         $this->dispatch('ticket-created');
     }
@@ -86,11 +99,29 @@ new #[Layout('layouts::public')] class extends Component
                 <flux:error name="technician_name" />
             </flux:field>
 
-            <flux:field>
-                <flux:label>Relatório Solicitado</flux:label>
-                <flux:textarea wire:model="report_description" rows="4" placeholder="Descreva a situação ou o que precisa ser avaliado..." />
-                <flux:error name="report_description" />
-            </flux:field>
+            @if ($this->reportTypes->isNotEmpty())
+                <flux:field>
+                    <flux:label>Relatório Solicitado</flux:label>
+                    <flux:select wire:model="report_type_id" placeholder="Selecione um tipo de relatório...">
+                        @foreach ($this->reportTypes as $reportType)
+                            <flux:select.option value="{{ $reportType->id }}">{{ $reportType->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="report_type_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Detalhes (opcional)</flux:label>
+                    <flux:textarea wire:model="report_description" rows="3" placeholder="Descreva a situação ou o que precisa ser avaliado..." />
+                    <flux:error name="report_description" />
+                </flux:field>
+            @else
+                <flux:field>
+                    <flux:label>Relatório Solicitado</flux:label>
+                    <flux:textarea wire:model="report_description" rows="4" placeholder="Descreva a situação ou o que precisa ser avaliado..." />
+                    <flux:error name="report_description" />
+                </flux:field>
+            @endif
 
             <flux:field>
                 <flux:checkbox wire:model="checked_in">

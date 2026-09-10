@@ -27,6 +27,9 @@
                         <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
                             {{ __('Usuários') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="document-text" :href="route('admin.report-types.index')" :current="request()->routeIs('admin.report-types.*')" wire:navigate>
+                            {{ __('Relatórios') }}
+                        </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>

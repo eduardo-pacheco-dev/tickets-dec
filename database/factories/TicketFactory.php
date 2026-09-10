@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\ReportType;
 use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,6 +22,7 @@ class TicketFactory extends Factory
             'tracking_code' => Ticket::generateTrackingCode(),
             'site_id' => $this->faker->bothify('SITE-####'),
             'technician_name' => $this->faker->name(),
+            'report_type_id' => ReportType::factory(),
             'report_description' => $this->faker->sentence(),
             'checked_in' => $this->faker->boolean(),
             'status' => $this->faker->randomElement(['aberto', 'em_andamento', 'resolvido']),
