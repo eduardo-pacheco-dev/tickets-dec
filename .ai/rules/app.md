@@ -15,3 +15,6 @@ To collapse the sidebar to an icon rail on desktop while keeping the mobile off-
 
 ## Avoid #[Computed] + cached relations for counts that change in actions
 #[Computed] and Eloquent relations are memoized on the component/User instance, so after an action that mutates the DB (e.g. markAllAsRead) a re-render still shows stale values — both in the browser request and in Livewire tests. For dynamic values that change within an action, query through the relationship builder instead: auth()->user()->notifications()->whereNull('read_at')->count(), and mutate via ->update() or ->markAsRead() on a freshly fetched model. See ⚡notification-bell and admin/⚡notification-list.
+
+## Avoid multi-statement $set() magic in wire:click
+Livewire 4.4 + Flux: wire:click="$set('a', 1); $set('b', 2)" compiles with an argumentsToArray(...) prefix and fails at runtime with "$set is not defined". Single-statement $set(...) is fragile too. Always use the explicit proxy: wire:click="$wire.set('prop', value)" (or a dedicated component method) for any wire:click that sets properties.

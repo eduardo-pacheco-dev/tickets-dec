@@ -219,7 +219,7 @@ new class extends Component
                 </flux:field>
 
                 <div class="flex justify-end gap-3 pt-2">
-                    <flux:button type="button" variant="subtle" wire:click="$set('showModal', false)">
+                    <flux:button type="button" variant="subtle" wire:click="$wire.set('showModal', false)">
                         Cancelar
                     </flux:button>
                     <flux:button type="submit" variant="primary">

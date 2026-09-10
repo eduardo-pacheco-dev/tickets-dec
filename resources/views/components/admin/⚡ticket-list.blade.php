@@ -88,7 +88,7 @@ new class extends Component
                 <flux:button
                     variant="subtle"
                     size="sm"
-                    wire:click="$set('search', ''); $set('status', null)"
+                    wire:click="$wire.set('search', ''); $wire.set('status', null)"
                 >
                     Limpar filtros
                 </flux:button>
@@ -111,7 +111,7 @@ new class extends Component
             <button
                 type="button"
                 wire:key="filter-all"
-                wire:click="$set('status', null)"
+                wire:click="$wire.set('status', null)"
                 aria-pressed="{{ $this->status === null ? 'true' : 'false' }}"
                 class="{{ $filterButtonClasses($this->status === null) }}"
             >
@@ -123,7 +123,7 @@ new class extends Component
                 <button
                     type="button"
                     wire:key="filter-{{ $status->value }}"
-                    wire:click="$set('status', '{{ $status->value }}')"
+                    wire:click="$wire.set('status', '{{ $status->value }}')"
                     aria-pressed="{{ $this->status === $status->value ? 'true' : 'false' }}"
                     class="{{ $filterButtonClasses($this->status === $status->value) }}"
                 >
@@ -233,7 +233,7 @@ new class extends Component
                                         <flux:button
                                             variant="subtle"
                                             size="sm"
-                                            wire:click="$set('search', ''); $set('status', null)"
+                                            wire:click="$wire.set('search', ''); $wire.set('status', null)"
                                         >
                                             Limpar filtros
                                         </flux:button>

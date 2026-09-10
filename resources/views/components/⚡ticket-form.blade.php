@@ -81,7 +81,7 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
             <flux:text class="mt-4 block text-sm text-gray-500">
                 Guarde este código para acompanhar o status do seu ticket.
             </flux:text>
-            <flux:button wire:click="$set('tracking_code', null)" variant="primary" class="mt-6">
+            <flux:button wire:click="$wire.set('tracking_code', null)" variant="primary" class="mt-6">
                 Abrir Novo Ticket
             </flux:button>
         </div>

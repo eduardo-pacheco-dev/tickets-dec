@@ -86,7 +86,7 @@ new class extends Component
 
         <div class="flex flex-wrap items-center gap-2">
             @if ($this->role !== null || $this->search !== '')
-                <flux:button variant="subtle" size="sm" wire:click="$set('search', ''); $set('role', null)">
+                <flux:button variant="subtle" size="sm" wire:click="$wire.set('search', ''); $wire.set('role', null)">
                     Limpar filtros
                 </flux:button>
             @endif
@@ -112,7 +112,7 @@ new class extends Component
             <button
                 type="button"
                 wire:key="filter-all"
-                wire:click="$set('role', null)"
+                wire:click="$wire.set('role', null)"
                 aria-pressed="{{ $this->role === null ? 'true' : 'false' }}"
                 class="{{ $filterButtonClasses($this->role === null) }}"
             >
@@ -124,7 +124,7 @@ new class extends Component
                 <button
                     type="button"
                     wire:key="filter-{{ $roleOption->value }}"
-                    wire:click="$set('role', '{{ $roleOption->value }}')"
+                    wire:click="$wire.set('role', '{{ $roleOption->value }}')"
                     aria-pressed="{{ $this->role === $roleOption->value ? 'true' : 'false' }}"
                     class="{{ $filterButtonClasses($this->role === $roleOption->value) }}"
                 >
@@ -225,7 +225,7 @@ new class extends Component
                                         <flux:button
                                             variant="subtle"
                                             size="sm"
-                                            wire:click="$set('search', ''); $set('role', null)"
+                                            wire:click="$wire.set('search', ''); $wire.set('role', null)"
                                         >
                                             Limpar filtros
                                         </flux:button>
