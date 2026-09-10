@@ -22,10 +22,20 @@ class TicketFactory extends Factory
             'tracking_code' => Ticket::generateTrackingCode(),
             'site_id' => $this->faker->bothify('SITE-####'),
             'technician_name' => $this->faker->name(),
-            'report_type_id' => ReportType::factory(),
             'report_description' => $this->faker->sentence(),
             'checked_in' => $this->faker->boolean(),
             'status' => $this->faker->randomElement(['aberto', 'em_andamento', 'resolvido']),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Ticket $ticket) {
+            if ($this->faker->boolean(80)) {
+                $reportTypes = ReportType::factory()->count($this->faker->numberBetween(1, 3))->create();
+
+                $ticket->reportTypes()->attach($reportTypes->pluck('id'));
+            }
+        });
     }
 }

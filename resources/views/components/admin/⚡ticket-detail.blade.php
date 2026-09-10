@@ -125,9 +125,13 @@ new class extends Component
                 </div>
 
                 <div class="mt-4">
-                    <flux:text class="text-xs font-medium uppercase text-gray-500">Relatório Solicitado</flux:text>
-                    @if ($this->ticket->reportType)
-                        <flux:badge color="blue" size="sm" class="mt-1">{{ $this->ticket->reportType->name }}</flux:badge>
+                    <flux:text class="text-xs font-medium uppercase text-gray-500">Relatório(s) Solicitado(s)</flux:text>
+                    @if ($this->ticket->reportTypes->isNotEmpty())
+                        <div class="mt-1 flex flex-wrap gap-1">
+                            @foreach ($this->ticket->reportTypes as $reportType)
+                                <flux:badge color="blue" size="sm">{{ $reportType->name }}</flux:badge>
+                            @endforeach
+                        </div>
                     @endif
                     @if ($this->ticket->report_description)
                         <flux:text class="mt-1">{{ $this->ticket->report_description }}</flux:text>

@@ -59,7 +59,7 @@ new class extends Component
     public function tickets(): LengthAwarePaginator
     {
         return Ticket::query()
-            ->with('reportType')
+            ->with('reportTypes')
             ->when($this->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('tracking_code', 'like', "%{$search}%")
@@ -182,8 +182,12 @@ new class extends Component
                             <flux:table.cell>{{ $ticket->site_id }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->technician_name }}</flux:table.cell>
                             <flux:table.cell>
-                                @if ($ticket->reportType)
-                                    <flux:badge color="blue" size="sm">{{ $ticket->reportType->name }}</flux:badge>
+                                @if ($ticket->reportTypes->isNotEmpty())
+                                    <div class="flex max-w-xs flex-wrap gap-1">
+                                        @foreach ($ticket->reportTypes as $reportType)
+                                            <flux:badge color="blue" size="sm">{{ $reportType->name }}</flux:badge>
+                                        @endforeach
+                                    </div>
                                 @else
                                     <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">—</flux:text>
                                 @endif

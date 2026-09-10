@@ -13,7 +13,7 @@ new #[Layout('layouts::public')] class extends Component
 {
     public string $site_id = '';
     public string $technician_name = '';
-    public ?int $report_type_id = null;
+    public array $report_types = [];
     public string $report_description = '';
     public bool $checked_in = false;
     public ?string $tracking_code = null;
@@ -31,7 +31,8 @@ new #[Layout('layouts::public')] class extends Component
         return [
             'site_id' => ['required', 'string', 'max:255'],
             'technician_name' => ['required', 'string', 'max:255'],
-            'report_type_id' => $hasReportTypes ? ['nullable', 'exists:report_types,id'] : ['nullable'],
+            'report_types' => $hasReportTypes ? ['nullable', 'array', 'max:10'] : ['nullable'],
+            'report_types.*' => ['integer', 'distinct', 'exists:report_types,id'],
             'report_description' => $hasReportTypes ? ['nullable', 'string', 'max:2000'] : ['required', 'string', 'max:2000'],
             'checked_in' => ['boolean'],
         ];
@@ -44,10 +45,13 @@ new #[Layout('layouts::public')] class extends Component
         $ticket = Ticket::create([
             'site_id' => $this->site_id,
             'technician_name' => $this->technician_name,
-            'report_type_id' => $this->report_type_id,
             'report_description' => $this->report_description,
             'checked_in' => $this->checked_in,
         ]);
+
+        if ($this->report_types !== []) {
+            $ticket->reportTypes()->sync($this->report_types);
+        }
 
         $recipients = User::query()->ticketStaff()->get();
 
@@ -57,7 +61,7 @@ new #[Layout('layouts::public')] class extends Component
 
         $this->tracking_code = $ticket->tracking_code;
 
-        $this->reset(['site_id', 'technician_name', 'report_type_id', 'report_description', 'checked_in']);
+        $this->reset(['site_id', 'technician_name', 'report_types', 'report_description', 'checked_in']);
 
         $this->dispatch('ticket-created');
     }
@@ -101,19 +105,20 @@ new #[Layout('layouts::public')] class extends Component
 
             @if ($this->reportTypes->isNotEmpty())
                 <flux:field>
-                    <flux:label>Relatório Solicitado</flux:label>
-                    <flux:select wire:model="report_type_id" placeholder="Selecione um tipo de relatório...">
+                    <flux:label>Relatórios Solicitados</flux:label>
+                    <div class="grid gap-3 sm:grid-cols-2">
                         @foreach ($this->reportTypes as $reportType)
-                            <flux:select.option value="{{ $reportType->id }}">{{ $reportType->name }}</flux:select.option>
+                            <flux:checkbox
+                                variant="cards"
+                                wire:model="report_types"
+                                value="{{ $reportType->id }}"
+                                :label="$reportType->name"
+                                wire:key="report-type-{{ $reportType->id }}"
+                            />
                         @endforeach
-                    </flux:select>
-                    <flux:error name="report_type_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Detalhes (opcional)</flux:label>
-                    <flux:textarea wire:model="report_description" rows="3" placeholder="Descreva a situação ou o que precisa ser avaliado..." />
-                    <flux:error name="report_description" />
+                    </div>
+                    <flux:text class="mt-1 text-sm">Selecione um ou mais tipos de relatório conforme necessário.</flux:text>
+                    <flux:error name="report_types" />
                 </flux:field>
             @else
                 <flux:field>
@@ -124,9 +129,7 @@ new #[Layout('layouts::public')] class extends Component
             @endif
 
             <flux:field>
-                <flux:checkbox wire:model="checked_in">
-                    Check-in realizado no site
-                </flux:checkbox>
+                <flux:checkbox wire:model="checked_in" label="Check-in realizado no site" />
             </flux:field>
 
             <flux:button type="submit" variant="primary" class="w-full">

@@ -215,9 +215,7 @@ new class extends Component
                 </flux:field>
 
                 <flux:field>
-                    <flux:checkbox wire:model="is_active">
-                        Ativo (aparece na seleção de tickets)
-                    </flux:checkbox>
+                    <flux:checkbox wire:model="is_active" label="Ativo (aparece na seleção de tickets)" />
                 </flux:field>
 
                 <div class="flex justify-end gap-3 pt-2">

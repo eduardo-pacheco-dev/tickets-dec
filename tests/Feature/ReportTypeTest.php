@@ -116,7 +116,8 @@ it('deletes a report type without tickets', function () {
 it('does not delete a report type that has tickets', function () {
     $user = User::factory()->admin()->create();
     $reportType = ReportType::factory()->create();
-    Ticket::factory()->create(['report_type_id' => $reportType->id]);
+    $ticket = Ticket::factory()->create();
+    $ticket->reportTypes()->attach($reportType);
 
     $this->actingAs($user);
 
@@ -126,21 +127,60 @@ it('does not delete a report type that has tickets', function () {
     $this->assertDatabaseHas('report_types', ['id' => $reportType->id]);
 });
 
+it('renders report type names as selectable checkboxes on the ticket form', function () {
+    $first = ReportType::factory()->create(['name' => 'Vistoria Elétrica', 'is_active' => true]);
+    $second = ReportType::factory()->create(['name' => 'Inspeção Predial', 'is_active' => true]);
+
+    Livewire::test('ticket-form')
+        ->assertSee($first->name)
+        ->assertSee($second->name);
+});
+
 it('creates a ticket with a report type selected', function () {
     $reportType = ReportType::factory()->create(['name' => 'Vistoria Elétrica', 'is_active' => true]);
 
     Livewire::test('ticket-form')
         ->set('site_id', 'SITE-001')
         ->set('technician_name', 'João Silva')
-        ->set('report_type_id', $reportType->id)
+        ->set('report_types', [$reportType->id])
         ->set('report_description', 'Necessário avaliar quadro de energia.')
         ->call('submit')
         ->assertHasNoErrors();
 
-    $this->assertDatabaseHas('tickets', [
-        'report_type_id' => $reportType->id,
-        'report_description' => 'Necessário avaliar quadro de energia.',
-    ]);
+    $ticket = Ticket::first();
+    expect($ticket->reportTypes->pluck('id'))->toContain($reportType->id)
+        ->and($ticket->report_description)->toBe('Necessário avaliar quadro de energia.');
+});
+
+it('creates a ticket with multiple report types selected', function () {
+    $first = ReportType::factory()->create(['name' => 'Vistoria Elétrica', 'is_active' => true]);
+    $second = ReportType::factory()->create(['name' => 'Inspeção Predial', 'is_active' => true]);
+    $third = ReportType::factory()->create(['name' => 'Redes e Telecom', 'is_active' => true]);
+
+    Livewire::test('ticket-form')
+        ->set('site_id', 'SITE-001')
+        ->set('technician_name', 'João Silva')
+        ->set('report_types', [$first->id, $second->id, $third->id])
+        ->set('report_description', 'Avaliação completa do site.')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $ticket = Ticket::first();
+    expect($ticket->reportTypes->pluck('id')->sort()->values()->all())->toBe([$first->id, $second->id, $third->id]);
+});
+
+it('rejects an invalid report type when creating a ticket', function () {
+    ReportType::factory()->create(['name' => 'Vistoria Elétrica', 'is_active' => true]);
+
+    Livewire::test('ticket-form')
+        ->set('site_id', 'SITE-001')
+        ->set('technician_name', 'João Silva')
+        ->set('report_types', [999])
+        ->set('report_description', 'Descrição.')
+        ->call('submit')
+        ->assertHasErrors(['report_types.0']);
+
+    $this->assertDatabaseCount('tickets', 0);
 });
 
 it('keeps the free text report field as fallback when no report types exist', function () {
@@ -152,7 +192,6 @@ it('keeps the free text report field as fallback when no report types exist', fu
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('tickets', [
-        'report_type_id' => null,
         'report_description' => 'Descrição livre.',
     ]);
 });
