@@ -6,6 +6,7 @@ use Livewire\Livewire;
 it('renders the public ticket status page', function () {
     $response = $this->get(route('tickets.status'));
     $response->assertOk();
+    $response->assertSee('Acompanhar Ticket - '.config('app.name'), false);
 });
 
 it('does not render the admin sidebar layout on the status page', function () {

@@ -7,9 +7,10 @@ use App\Notifications\NewTicketNotification;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::public')] class extends Component
+new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Component
 {
     public string $site_id = '';
     public string $technician_name = '';

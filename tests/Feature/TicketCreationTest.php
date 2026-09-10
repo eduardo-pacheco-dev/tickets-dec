@@ -6,6 +6,7 @@ use Livewire\Livewire;
 it('renders the public ticket creation form', function () {
     $response = $this->get(route('home'));
     $response->assertOk();
+    $response->assertSee('Solicitar Ticket - '.config('app.name'), false);
 });
 
 it('redirects the old abrir-ticket url to the root', function () {

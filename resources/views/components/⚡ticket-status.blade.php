@@ -2,9 +2,10 @@
 
 use App\Models\Ticket;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::public')] class extends Component
+new #[Layout('layouts::public'), Title('Acompanhar Ticket')] class extends Component
 {
     public string $tracking_code_input = '';
     public ?Ticket $ticket = null;
