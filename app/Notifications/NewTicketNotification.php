@@ -5,6 +5,8 @@ namespace App\Notifications;
 use App\Models\Ticket;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class NewTicketNotification extends Notification
 {
@@ -15,7 +17,7 @@ class NewTicketNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', WebPushChannel::class];
     }
 
     /**
@@ -41,6 +43,19 @@ class NewTicketNotification extends Notification
             ->line('**'.$this->ticket->tracking_code.'** — '.$this->ticket->report_description)
             ->line('Técnico: '.$this->ticket->technician_name.' · Site: '.$this->ticket->site_id)
             ->action('Ver ticket', route('admin.tickets.show', $this->ticket));
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('Novo ticket '.$this->ticket->tracking_code)
+            ->body('Aberto por '.$this->ticket->technician_name.'. '.(string) str($this->ticket->report_description)->limit(120))
+            ->options(['TTL' => 86400])
+            ->data([
+                'url' => route('admin.tickets.show', $this->ticket),
+                'ticket_id' => $this->ticket->id,
+                'tracking_code' => $this->ticket->tracking_code,
+            ]);
     }
 
     /**

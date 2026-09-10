@@ -5,6 +5,8 @@ namespace App\Notifications;
 use App\Models\Ticket;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class TicketResponseSavedNotification extends Notification
 {
@@ -19,7 +21,7 @@ class TicketResponseSavedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', WebPushChannel::class];
     }
 
     /**
@@ -49,6 +51,25 @@ class TicketResponseSavedNotification extends Notification
         }
 
         return $mail;
+    }
+
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        $body = (string) str($this->response)->limit(120);
+
+        if ($this->actorName !== null) {
+            $body .= ' · '.$this->actorName;
+        }
+
+        return (new WebPushMessage)
+            ->title('Nova resposta no ticket '.$this->ticket->tracking_code)
+            ->body($body)
+            ->options(['TTL' => 86400])
+            ->data([
+                'url' => route('admin.tickets.show', $this->ticket),
+                'ticket_id' => $this->ticket->id,
+                'tracking_code' => $this->ticket->tracking_code,
+            ]);
     }
 
     /**

@@ -3,11 +3,19 @@
 use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\DatabaseNotification;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
 {
     public string $display = 'sidebar';
+
+    public bool $pushEnabled = false;
+
+    public function mount(): void
+    {
+        $this->pushEnabled = $this->user()?->pushSubscriptions()->exists() ?? false;
+    }
 
     private function user(): ?object
     {
@@ -44,6 +52,18 @@ new class extends Component
     public function markAllAsRead(): void
     {
         $this->user()?->notifications()->whereNull('read_at')->update(['read_at' => now()]);
+    }
+
+    #[On('push-subscription-saved')]
+    public function onPushSubscriptionSaved(): void
+    {
+        $this->pushEnabled = true;
+    }
+
+    public function disableBrowserNotifications(): void
+    {
+        $this->user()?->pushSubscriptions()->delete();
+        $this->pushEnabled = false;
     }
 };
 ?>
@@ -131,6 +151,36 @@ new class extends Component
                         @endforeach
                     </flux:menu.radio.group>
                 @endif
+
+                <flux:menu.separator />
+
+                <div class="flex items-center gap-2 px-3 py-2.5">
+                    @if ($this->pushEnabled)
+                        <flux:icon name="bell" class="size-4 shrink-0 text-green-600 dark:text-green-400" />
+                        <flux:text size="sm" class="flex-1">Notificações do navegador ativadas.</flux:text>
+                        <flux:button
+                            as="button"
+                            variant="subtle"
+                            size="xs"
+                            wire:click="disableBrowserNotifications"
+                            data-test="disable-push"
+                        >
+                            Desativar
+                        </flux:button>
+                    @else
+                        <flux:icon name="bell" class="size-4 shrink-0 text-zinc-400 dark:text-zinc-500" />
+                        <flux:text size="sm" class="flex-1">Receber alertas no navegador?</flux:text>
+                        <flux:button
+                            as="button"
+                            variant="primary"
+                            size="xs"
+                            x-on:click="window.enablePushNotifications()"
+                            data-test="enable-push"
+                        >
+                            Ativar
+                        </flux:button>
+                    @endif
+                </div>
             </flux:menu>
         </flux:dropdown>
     @endif

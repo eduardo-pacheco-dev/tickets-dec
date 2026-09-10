@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', 'ticket-form')->name('home');
@@ -9,6 +10,9 @@ Route::livewire('acompanhar-ticket', 'ticket-status')->name('tickets.status');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+
+    Route::post('push-subscription', [PushSubscriptionController::class, 'store'])->name('push-subscription.store');
+    Route::delete('push-subscription', [PushSubscriptionController::class, 'destroy'])->name('push-subscription.destroy');
 
     Route::middleware('role:admin,operator,supervisor')->group(function () {
         Route::livewire('admin/tickets', 'admin/ticket-list')->name('admin.tickets.index');
