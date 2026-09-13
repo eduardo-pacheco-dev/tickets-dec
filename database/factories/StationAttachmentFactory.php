@@ -36,4 +36,9 @@ class StationAttachmentFactory extends Factory
     {
         return $this->state(fn () => ['type' => StationAttachmentType::Ppi->value]);
     }
+
+    public function docD(): static
+    {
+        return $this->state(fn () => ['type' => StationAttachmentType::DocD->value]);
+    }
 }

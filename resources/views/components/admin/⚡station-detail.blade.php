@@ -72,10 +72,19 @@ new class extends Component
     #[Computed]
     public function attachmentTypes(): array
     {
-        return [
-            ['value' => StationAttachmentType::Tssr->value, 'label' => StationAttachmentType::Tssr->label()],
-            ['value' => StationAttachmentType::Ppi->value, 'label' => StationAttachmentType::Ppi->label()],
-        ];
+        return array_map(
+            fn (StationAttachmentType $type) => ['value' => $type->value, 'label' => $type->label()],
+            StationAttachmentType::cases()
+        );
+    }
+
+    public function attachmentRules(): string
+    {
+        if ($this->attachmentType === StationAttachmentType::DocD->value) {
+            return 'mimes:xlsx,xls';
+        }
+
+        return 'mimes:pdf,zip';
     }
 
     #[Computed]
@@ -97,7 +106,7 @@ new class extends Component
     {
         $this->validate([
             'attachmentType' => ['required', 'in:'.implode(',', array_column(StationAttachmentType::cases(), 'value'))],
-            'attachmentFile' => ['required', 'file', 'mimes:pdf,zip', 'max:20480'],
+            'attachmentFile' => ['required', 'file', $this->attachmentRules(), 'max:20480'],
         ]);
 
         $path = $this->attachmentFile->store('station-attachments', 'public');
@@ -395,15 +404,17 @@ new class extends Component
             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                 <flux:icon name="paper-clip" class="size-4" />
             </div>
-            <flux:heading size="sm">Anexos (TSSR / PPI)</flux:heading>
+            <flux:heading size="sm">Anexos (TSSR / PPI / DOC-D)</flux:heading>
         </div>
-        <flux:text class="mt-1 text-sm">Projeto preliminar de instalação da estação. Formatos aceitos: PDF e ZIP.</flux:text>
+        <flux:text class="mt-1 text-sm">
+            TSSR e PPI: projeto preliminar de instalação (PDF/ZIP). DOC-D: planilha de documentos desinstalados (XLSX/XLS).
+        </flux:text>
 
         <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
             <div class="grid gap-4 sm:grid-cols-2">
                 <flux:field>
                     <flux:label>Tipo</flux:label>
-                    <flux:select wire:model="attachmentType" placeholder="Selecione o tipo...">
+                    <flux:select wire:model.live="attachmentType" placeholder="Selecione o tipo...">
                         @foreach ($this->attachmentTypes as $type)
                             <flux:select.option value="{{ $type['value'] }}">{{ $type['label'] }}</flux:select.option>
                         @endforeach
@@ -416,7 +427,7 @@ new class extends Component
                     <input
                         type="file"
                         wire:model="attachmentFile"
-                        accept=".pdf,.zip"
+                        :accept="$this->attachmentType === \App\Enums\StationAttachmentType::DocD->value ? '.xlsx,.xls' : '.pdf,.zip'"
                         class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
                     />
                     <flux:error name="attachmentFile" />
@@ -441,7 +452,7 @@ new class extends Component
                     @foreach ($this->attachments as $attachment)
                         <div wire:key="attachment-{{ $attachment->id }}" class="flex items-center gap-4 p-4">
                             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
-                                <flux:icon :name="$attachment->type === \App\Enums\StationAttachmentType::Ppi ? 'cube' : 'document'" class="size-5" />
+                                <flux:icon :name="match($attachment->type) { \App\Enums\StationAttachmentType::Ppi => 'cube', \App\Enums\StationAttachmentType::DocD => 'table-cells', default => 'document' }" class="size-5" />
                             </div>
 
                             <div class="min-w-0 flex-1">

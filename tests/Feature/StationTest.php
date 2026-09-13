@@ -165,6 +165,44 @@ it('uploads a PPI attachment to a station', function () {
     ]);
 });
 
+it('uploads a DOC-D attachment to a station', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'doc_d')
+        ->set('attachmentFile', UploadedFile::fake()->create('doc-d.xlsx', 100, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
+        ->call('saveAttachment')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('station_attachments', [
+        'station_id' => $station->id,
+        'type' => 'doc_d',
+        'original_name' => 'doc-d.xlsx',
+    ]);
+});
+
+it('rejects non excel files for DOC-D attachments', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'doc_d')
+        ->set('attachmentFile', UploadedFile::fake()->create('doc-d.pdf', 100, 'application/pdf'))
+        ->call('saveAttachment')
+        ->assertHasErrors(['attachmentFile']);
+
+    $this->assertDatabaseCount('station_attachments', 0);
+});
+
 it('rejects invalid attachment types', function () {
     $user = User::factory()->admin()->create();
     $station = Station::factory()->create();
@@ -208,7 +246,7 @@ it('lists station attachments', function () {
 
     $this->get(route('admin.stations.show', $station))
         ->assertOk()
-        ->assertSee('Anexos (TSSR / PPI)');
+        ->assertSee('Anexos (TSSR / PPI / DOC-D)');
 });
 
 it('deletes a station attachment', function () {
