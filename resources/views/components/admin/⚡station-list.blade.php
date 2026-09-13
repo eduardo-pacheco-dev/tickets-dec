@@ -619,7 +619,11 @@ new class extends Component
                             class="transition-colors hover:bg-zinc-50 dark:hover:bg-white/[3%]"
                         >
                             <flux:table.cell>
-                                <span class="font-mono text-sm font-semibold">{{ $station->site_id }}</span>
+                                <a
+                                    href="{{ route('admin.stations.show', $station) }}"
+                                    wire:navigate
+                                    class="font-mono text-sm font-semibold underline-offset-2 hover:underline"
+                                >{{ $station->site_id }}</a>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <span class="font-mono text-sm">{{ $station->address_id ?: '—' }}</span>

@@ -33,6 +33,88 @@ it('denies client users from the stations page', function () {
     $this->get(route('admin.stations.index'))->assertForbidden();
 });
 
+it('redirects guests away from the admin station detail page', function () {
+    $station = Station::factory()->create();
+
+    $this->get(route('admin.stations.show', $station))->assertRedirect(route('login'));
+});
+
+it('renders the admin station detail page for admin users', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    $this->get(route('admin.stations.show', $station))
+        ->assertOk()
+        ->assertSee($station->site_id)
+        ->assertSee($station->city)
+        ->assertSee($station->state)
+        ->assertSee($station->technology);
+});
+
+it('denies non-admin users from the station detail page', function () {
+    $user = User::factory()->operator()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    $this->get(route('admin.stations.show', $station))->assertForbidden();
+});
+
+it('toggles a station active state from the detail page', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create(['is_active' => true]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('toggleActive');
+
+    $this->assertDatabaseHas('stations', [
+        'id' => $station->id,
+        'is_active' => false,
+    ]);
+});
+
+it('deletes a station from the detail page', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('delete')
+        ->assertRedirect(route('admin.stations.index'));
+
+    $this->assertDatabaseMissing('stations', ['id' => $station->id]);
+});
+
+it('renders a map section when the station has coordinates', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create(['latitude' => '-10.925094', 'longitude' => '-69.554056']);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->assertSee('Localização no Mapa')
+        ->assertSee('openstreetmap.org/export/embed.html')
+        ->assertSee('marker=-10.925094%2C-69.554056')
+        ->assertSee('Abrir no OpenStreetMap');
+});
+
+it('renders a placeholder when the station has no coordinates', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create(['latitude' => null, 'longitude' => null]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->assertSee('Localização no Mapa')
+        ->assertDontSee('openstreetmap.org/export/embed.html')
+        ->assertSee('não possui coordenadas');
+});
+
 it('creates a station', function () {
     $user = User::factory()->admin()->create();
 
