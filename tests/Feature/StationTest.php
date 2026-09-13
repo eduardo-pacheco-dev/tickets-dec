@@ -203,6 +203,44 @@ it('rejects non excel files for DOC-D attachments', function () {
     $this->assertDatabaseCount('station_attachments', 0);
 });
 
+it('uploads a Nota Fiscal attachment to a station', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'nota_fiscal')
+        ->set('attachmentFile', UploadedFile::fake()->create('nota-fiscal.pdf', 100, 'application/pdf'))
+        ->call('saveAttachment')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('station_attachments', [
+        'station_id' => $station->id,
+        'type' => 'nota_fiscal',
+        'original_name' => 'nota-fiscal.pdf',
+    ]);
+});
+
+it('rejects non pdf files for Nota Fiscal attachments', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'nota_fiscal')
+        ->set('attachmentFile', UploadedFile::fake()->create('nota-fiscal.zip', 100, 'application/zip'))
+        ->call('saveAttachment')
+        ->assertHasErrors(['attachmentFile']);
+
+    $this->assertDatabaseCount('station_attachments', 0);
+});
+
 it('rejects invalid attachment types', function () {
     $user = User::factory()->admin()->create();
     $station = Station::factory()->create();
@@ -246,7 +284,7 @@ it('lists station attachments', function () {
 
     $this->get(route('admin.stations.show', $station))
         ->assertOk()
-        ->assertSee('Anexos (TSSR / PPI / DOC-D)');
+        ->assertSee('Anexos (TSSR / PPI / DOC-D / Nota Fiscal)');
 });
 
 it('deletes a station attachment', function () {

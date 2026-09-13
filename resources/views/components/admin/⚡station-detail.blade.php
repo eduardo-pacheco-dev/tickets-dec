@@ -84,6 +84,10 @@ new class extends Component
             return 'mimes:xlsx,xls';
         }
 
+        if ($this->attachmentType === StationAttachmentType::NotaFiscal->value) {
+            return 'mimes:pdf';
+        }
+
         return 'mimes:pdf,zip';
     }
 
@@ -404,10 +408,10 @@ new class extends Component
             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                 <flux:icon name="paper-clip" class="size-4" />
             </div>
-            <flux:heading size="sm">Anexos (TSSR / PPI / DOC-D)</flux:heading>
+            <flux:heading size="sm">Anexos (TSSR / PPI / DOC-D / Nota Fiscal)</flux:heading>
         </div>
         <flux:text class="mt-1 text-sm">
-            TSSR e PPI: projeto preliminar de instalação (PDF/ZIP). DOC-D: planilha de documentos desinstalados (XLSX/XLS).
+            TSSR e PPI: projeto preliminar de instalação (PDF/ZIP). DOC-D: planilha de documentos desinstalados (XLSX/XLS). Nota Fiscal: comprovante em PDF.
         </flux:text>
 
         <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
@@ -427,7 +431,7 @@ new class extends Component
                     <input
                         type="file"
                         wire:model="attachmentFile"
-                        :accept="$this->attachmentType === \App\Enums\StationAttachmentType::DocD->value ? '.xlsx,.xls' : '.pdf,.zip'"
+                        :accept="match($this->attachmentType) { \App\Enums\StationAttachmentType::DocD->value => '.xlsx,.xls', \App\Enums\StationAttachmentType::NotaFiscal->value => '.pdf', default => '.pdf,.zip' }"
                         class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
                     />
                     <flux:error name="attachmentFile" />
@@ -452,7 +456,7 @@ new class extends Component
                     @foreach ($this->attachments as $attachment)
                         <div wire:key="attachment-{{ $attachment->id }}" class="flex items-center gap-4 p-4">
                             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
-                                <flux:icon :name="match($attachment->type) { \App\Enums\StationAttachmentType::Ppi => 'cube', \App\Enums\StationAttachmentType::DocD => 'table-cells', default => 'document' }" class="size-5" />
+                                <flux:icon :name="match($attachment->type) { \App\Enums\StationAttachmentType::Ppi => 'cube', \App\Enums\StationAttachmentType::DocD => 'table-cells', \App\Enums\StationAttachmentType::NotaFiscal => 'receipt-percent', default => 'document' }" class="size-5" />
                             </div>
 
                             <div class="min-w-0 flex-1">

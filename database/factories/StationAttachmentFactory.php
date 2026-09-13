@@ -41,4 +41,9 @@ class StationAttachmentFactory extends Factory
     {
         return $this->state(fn () => ['type' => StationAttachmentType::DocD->value]);
     }
+
+    public function notaFiscal(): static
+    {
+        return $this->state(fn () => ['type' => StationAttachmentType::NotaFiscal->value]);
+    }
 }
