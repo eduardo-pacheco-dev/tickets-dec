@@ -9,6 +9,14 @@ it('renders the public ticket status page', function () {
     $response->assertSee('Acompanhar Ticket - '.config('app.name'), false);
 });
 
+it('links to the ticket opening form', function () {
+    $response = $this->get(route('tickets.status'));
+
+    $response->assertOk()
+        ->assertSee(route('home'))
+        ->assertSee('Abrir Ticket');
+});
+
 it('does not render the admin sidebar layout on the status page', function () {
     $response = $this->get(route('tickets.status'));
 

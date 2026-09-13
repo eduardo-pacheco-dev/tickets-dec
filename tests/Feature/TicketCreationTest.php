@@ -21,6 +21,14 @@ it('does not render the admin sidebar layout on the ticket form', function () {
     $response->assertDontSee('Administração');
 });
 
+it('shows prominent ticket action buttons on the home page', function () {
+    $response = $this->get(route('home'));
+
+    $response->assertOk()
+        ->assertSee('Acompanhar Ticket')
+        ->assertSee(route('tickets.status'));
+});
+
 it('creates a ticket with valid data', function () {
     Livewire::test('ticket-form')
         ->set('site_id', 'SITE-001')

@@ -9,15 +9,6 @@
         <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <x-app-logo href="{{ route('home') }}" wire:navigate />
 
-            <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item icon="plus-circle" :href="route('home')" :current="request()->routeIs('home')" wire:navigate>
-                    {{ __('Abrir Ticket') }}
-                </flux:navbar.item>
-                <flux:navbar.item icon="magnifying-glass" :href="route('tickets.status')" :current="request()->routeIs('tickets.status')" wire:navigate>
-                    {{ __('Acompanhar Ticket') }}
-                </flux:navbar.item>
-            </flux:navbar>
-
             <flux:spacer />
 
             @auth

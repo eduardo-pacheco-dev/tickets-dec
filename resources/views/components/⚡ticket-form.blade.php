@@ -72,26 +72,42 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
 <div>
     @if ($this->tracking_code)
         <div class="rounded-xl border border-green-200 bg-green-50 p-6 text-center dark:border-green-800 dark:bg-green-900/20">
-            <flux:icon name="check-circle" class="mx-auto size-12 text-green-600 dark:text-green-400" />
-            <flux:heading size="lg" class="mt-4">Ticket Criado com Sucesso!</flux:heading>
-            <flux:text class="mt-2">Seu código de acompanhamento é:</flux:text>
-            <div class="mt-3 inline-block rounded-lg bg-white px-6 py-3 font-mono text-2xl font-bold tracking-wider text-gray-900 shadow dark:bg-zinc-800 dark:text-white">
-                {{ $this->tracking_code }}
+            <div class="mb-6 space-y-4">
+                <flux:icon name="check-circle" class="mx-auto size-12 text-green-600 dark:text-green-400" />
+                <div>
+                    <flux:heading size="lg">Ticket Criado com Sucesso!</flux:heading>
+                    <flux:text class="mt-4 text-sm">Seu código de acompanhamento é:</flux:text>
+                    <div class="mt-3 inline-block rounded-lg bg-white px-6 py-3 font-mono text-2xl font-bold tracking-wider text-gray-900 shadow dark:bg-zinc-800 dark:text-white">
+                        {{ $this->tracking_code }}
+                    </div>
+                </div>
+                <flux:text class="block text-sm text-gray-500">
+                    Guarde este código para acompanhar o status do seu ticket.
+                </flux:text>
+                <flux:button wire:click="$wire.set('tracking_code', null)" variant="primary" class="mt-6">
+                    Abrir Novo Ticket
+                </flux:button>
             </div>
-            <flux:text class="mt-4 block text-sm text-gray-500">
-                Guarde este código para acompanhar o status do seu ticket.
-            </flux:text>
-            <flux:button wire:click="$wire.set('tracking_code', null)" variant="primary" class="mt-6">
-                Abrir Novo Ticket
-            </flux:button>
         </div>
     @else
-        <div class="mb-8">
+        <div class="mb-6">
             <flux:heading size="xl">Solicitar Ticket</flux:heading>
             <flux:text class="mt-2">Preencha os dados abaixo para abrir um ticket na fila de avaliação.</flux:text>
         </div>
 
-        <form wire:submit="submit" class="space-y-6">
+        <div class="mb-6">
+            <flux:button
+                :href="route('tickets.status')"
+                variant="outline"
+                icon="magnifying-glass"
+                class="w-full !h-12 !text-base"
+                wire:navigate
+            >
+                {{ __('Acompanhar Ticket') }}
+            </flux:button>
+        </div>
+
+        <form wire:submit="submit" id="ticket-form" class="space-y-6 border-t border-zinc-200 pt-6 scroll-mt-24 dark:border-zinc-700">
             <flux:field>
                 <flux:label>Site ID</flux:label>
                 <flux:input wire:model="site_id" placeholder="Ex: SITE-0012" />
@@ -107,7 +123,7 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
             @if ($this->reportTypes->isNotEmpty())
                 <flux:field>
                     <flux:label>Relatórios Solicitados</flux:label>
-                    <div class="grid gap-3 sm:grid-cols-2">
+<div class="grid gap-3 sm:grid-cols-2">
                         @foreach ($this->reportTypes as $reportType)
                             <flux:checkbox
                                 variant="cards"
@@ -118,7 +134,7 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
                             />
                         @endforeach
                     </div>
-                    <flux:text class="mt-1 text-sm">Selecione um ou mais tipos de relatório conforme necessário.</flux:text>
+                    <flux:text class="mt-1.5 text-sm">Selecione um ou mais tipos de relatório conforme necessário.</flux:text>
                     <flux:error name="report_types" />
                 </flux:field>
             @else
