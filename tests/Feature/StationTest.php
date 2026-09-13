@@ -130,10 +130,13 @@ it('uploads a TSSR attachment to a station', function () {
     Storage::fake('public');
 
     Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openAttachmentModal')
+        ->assertSet('showAttachmentModal', true)
         ->set('attachmentType', 'tssr')
         ->set('attachmentFile', UploadedFile::fake()->create('tssr.pdf', 100, 'application/pdf'))
         ->call('saveAttachment')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertSet('showAttachmentModal', false);
 
     $this->assertDatabaseHas('station_attachments', [
         'station_id' => $station->id,
@@ -251,9 +254,12 @@ it('uploads an other attachment with any format', function () {
     Storage::fake('public');
 
     Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openOtherAttachmentModal')
+        ->assertSet('showOtherAttachmentModal', true)
         ->set('otherAttachmentFile', UploadedFile::fake()->create('planta.png', 100, 'image/png'))
         ->call('saveOtherAttachment')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertSet('showOtherAttachmentModal', false);
 
     $this->assertDatabaseHas('station_attachments', [
         'station_id' => $station->id,

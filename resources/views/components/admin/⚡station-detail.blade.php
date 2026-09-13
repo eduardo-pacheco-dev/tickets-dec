@@ -20,7 +20,11 @@ new class extends Component
 
     public $attachmentFile = null;
 
+    public bool $showAttachmentModal = false;
+
     public $otherAttachmentFile = null;
+
+    public bool $showOtherAttachmentModal = false;
 
     public string $commentBody = '';
 
@@ -128,6 +132,12 @@ new class extends Component
         return Storage::disk('public')->download($attachment->path, $attachment->original_name);
     }
 
+    public function openAttachmentModal(): void
+    {
+        $this->reset('attachmentType', 'attachmentFile');
+        $this->showAttachmentModal = true;
+    }
+
     public function saveAttachment(): void
     {
         $this->validate([
@@ -146,8 +156,14 @@ new class extends Component
             'uploaded_by' => auth()->id(),
         ]);
 
-        $this->reset('attachmentType', 'attachmentFile');
+        $this->reset('attachmentType', 'attachmentFile', 'showAttachmentModal');
         $this->dispatch('attachment-saved');
+    }
+
+    public function openOtherAttachmentModal(): void
+    {
+        $this->reset('otherAttachmentFile');
+        $this->showOtherAttachmentModal = true;
     }
 
     public function saveOtherAttachment(): void
@@ -167,7 +183,7 @@ new class extends Component
             'uploaded_by' => auth()->id(),
         ]);
 
-        $this->reset('otherAttachmentFile');
+        $this->reset('otherAttachmentFile', 'showOtherAttachmentModal');
         $this->dispatch('other-attachment-saved');
     }
 
@@ -530,44 +546,13 @@ new class extends Component
             </div>
             <flux:heading size="sm">Anexos (TSSR / PPI / DOC-D / Nota Fiscal)</flux:heading>
         </div>
-        <flux:text class="mt-1 text-sm">
-            TSSR e PPI: projeto preliminar de instalação (PDF/ZIP). DOC-D: planilha de documentos desinstalados (XLSX/XLS). Nota Fiscal: comprovante em PDF.
-        </flux:text>
-
-        <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-            <div class="grid gap-4 sm:grid-cols-2">
-                <flux:field>
-                    <flux:label>Tipo</flux:label>
-                    <flux:select wire:model.live="attachmentType" placeholder="Selecione o tipo...">
-                        @foreach ($this->attachmentTypes as $type)
-                            <flux:select.option value="{{ $type['value'] }}">{{ $type['label'] }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="attachmentType" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Arquivo</flux:label>
-                    <input
-                        type="file"
-                        wire:model="attachmentFile"
-                        :accept="match($this->attachmentType) { \App\Enums\StationAttachmentType::DocD->value => '.xlsx,.xls', \App\Enums\StationAttachmentType::NotaFiscal->value => '.pdf', default => '.pdf,.zip' }"
-                        class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
-                    />
-                    <flux:error name="attachmentFile" />
-                </flux:field>
-            </div>
-
-            <div>
-                <flux:button
-                    wire:click="saveAttachment"
-                    variant="primary"
-                    icon="arrow-up-tray"
-                    :disabled="! $this->attachmentType || ! $this->attachmentFile"
-                >
-                    Enviar anexo
-                </flux:button>
-            </div>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <flux:text class="mt-1 text-sm">
+                TSSR e PPI: projeto preliminar de instalação (PDF/ZIP). DOC-D: planilha de documentos desinstalados (XLSX/XLS). Nota Fiscal: comprovante em PDF.
+            </flux:text>
+            <flux:button wire:click="openAttachmentModal" variant="primary" size="sm" icon="arrow-up-tray">
+                Enviar anexo
+            </flux:button>
         </div>
 
         @if ($this->attachments->isNotEmpty())
@@ -634,29 +619,11 @@ new class extends Component
             </div>
             <flux:heading size="sm">Outros Anexos</flux:heading>
         </div>
-        <flux:text class="mt-1 text-sm">Arquivos diversos relacionados à estação. Qualquer formato é aceito.</flux:text>
-
-        <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-            <flux:field>
-                <flux:label>Arquivo</flux:label>
-                <input
-                    type="file"
-                    wire:model="otherAttachmentFile"
-                    class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
-                />
-                <flux:error name="otherAttachmentFile" />
-            </flux:field>
-
-            <div>
-                <flux:button
-                    wire:click="saveOtherAttachment"
-                    variant="primary"
-                    icon="arrow-up-tray"
-                    :disabled="! $this->otherAttachmentFile"
-                >
-                    Enviar anexo
-                </flux:button>
-            </div>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <flux:text class="mt-1 text-sm">Arquivos diversos relacionados à estação. Qualquer formato é aceito.</flux:text>
+            <flux:button wire:click="openOtherAttachmentModal" variant="primary" size="sm" icon="arrow-up-tray">
+                Enviar anexo
+            </flux:button>
         </div>
 
         @if ($this->otherAttachments->isNotEmpty())
@@ -792,6 +759,73 @@ new class extends Component
             </div>
         @endif
     </div>
+
+    @if ($showAttachmentModal)
+        <flux:modal wire:model="showAttachmentModal" data-test="attachment-modal">
+            <flux:heading size="lg">Enviar Anexo</flux:heading>
+            <flux:text class="mt-1 text-sm">Anexo para {{ $this->station->site_id }}</flux:text>
+
+            <form wire:submit="saveAttachment" class="mt-6 space-y-4">
+                <flux:field>
+                    <flux:label>Tipo</flux:label>
+                    <flux:select wire:model.live="attachmentType" placeholder="Selecione o tipo...">
+                        @foreach ($this->attachmentTypes as $type)
+                            <flux:select.option value="{{ $type['value'] }}">{{ $type['label'] }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="attachmentType" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Arquivo</flux:label>
+                    <input
+                        type="file"
+                        wire:model="attachmentFile"
+                        :accept="match($this->attachmentType) { \App\Enums\StationAttachmentType::DocD->value => '.xlsx,.xls', \App\Enums\StationAttachmentType::NotaFiscal->value => '.pdf', default => '.pdf,.zip' }"
+                        class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
+                    />
+                    <flux:error name="attachmentFile" />
+                </flux:field>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <flux:button type="button" variant="subtle" wire:click="$wire.set('showAttachmentModal', false)">
+                        Cancelar
+                    </flux:button>
+                    <flux:button type="submit" variant="primary" icon="arrow-up-tray">
+                        Enviar
+                    </flux:button>
+                </div>
+            </form>
+        </flux:modal>
+    @endif
+
+    @if ($showOtherAttachmentModal)
+        <flux:modal wire:model="showOtherAttachmentModal" data-test="other-attachment-modal">
+            <flux:heading size="lg">Enviar Anexo</flux:heading>
+            <flux:text class="mt-1 text-sm">Arquivo diverso para {{ $this->station->site_id }}</flux:text>
+
+            <form wire:submit="saveOtherAttachment" class="mt-6 space-y-4">
+                <flux:field>
+                    <flux:label>Arquivo</flux:label>
+                    <input
+                        type="file"
+                        wire:model="otherAttachmentFile"
+                        class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
+                    />
+                    <flux:error name="otherAttachmentFile" />
+                </flux:field>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <flux:button type="button" variant="subtle" wire:click="$wire.set('showOtherAttachmentModal', false)">
+                        Cancelar
+                    </flux:button>
+                    <flux:button type="submit" variant="primary" icon="arrow-up-tray">
+                        Enviar
+                    </flux:button>
+                </div>
+            </form>
+        </flux:modal>
+    @endif
 
     @if ($showCommentModal)
         <flux:modal wire:model="showCommentModal" data-test="comment-modal">
