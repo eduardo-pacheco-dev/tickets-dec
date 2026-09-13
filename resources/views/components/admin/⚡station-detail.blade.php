@@ -24,6 +24,8 @@ new class extends Component
 
     public string $commentBody = '';
 
+    public bool $showCommentModal = false;
+
     public ?int $editingCommentId = null;
 
     public string $editingCommentBody = '';
@@ -199,8 +201,14 @@ new class extends Component
             'body' => $this->commentBody,
         ]);
 
-        $this->reset('commentBody');
+        $this->reset('commentBody', 'showCommentModal');
         $this->dispatch('comment-saved');
+    }
+
+    public function openCommentModal(): void
+    {
+        $this->reset('commentBody', 'editingCommentId', 'editingCommentBody');
+        $this->showCommentModal = true;
     }
 
     public function startEditingComment(int $id): void
@@ -714,21 +722,12 @@ new class extends Component
             </div>
             <flux:heading size="sm">Comentários</flux:heading>
         </div>
-        <flux:text class="mt-1 text-sm">Anotações e discussões sobre esta estação.</flux:text>
-
-        <form wire:submit="saveComment" class="mt-4 space-y-3">
-            <flux:textarea
-                wire:model="commentBody"
-                rows="3"
-                placeholder="Escreva um comentário..."
-            />
-            <flux:error name="commentBody" />
-            <div class="flex justify-end">
-                <flux:button type="submit" variant="primary" icon="chat-bubble-left-ellipsis">
-                    Comentar
-                </flux:button>
-            </div>
-        </form>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <flux:text class="mt-1 text-sm">Anotações e discussões sobre esta estação.</flux:text>
+            <flux:button wire:click="openCommentModal" variant="primary" size="sm" icon="chat-bubble-left-ellipsis">
+                Comentar
+            </flux:button>
+        </div>
 
         @if ($this->comments->isNotEmpty())
             <div class="mt-6 space-y-4">
@@ -793,4 +792,33 @@ new class extends Component
             </div>
         @endif
     </div>
+
+    @if ($showCommentModal)
+        <flux:modal wire:model="showCommentModal" data-test="comment-modal">
+            <flux:heading size="lg">Novo Comentário</flux:heading>
+            <flux:text class="mt-1 text-sm">Comentário em {{ $this->station->site_id }}</flux:text>
+
+            <form wire:submit="saveComment" class="mt-6 space-y-4">
+                <flux:field>
+                    <flux:label>Comentário</flux:label>
+                    <flux:textarea
+                        wire:model="commentBody"
+                        rows="4"
+                        placeholder="Escreva seu comentário..."
+                        autofocus
+                    />
+                    <flux:error name="commentBody" />
+                </flux:field>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <flux:button type="button" variant="subtle" wire:click="$wire.set('showCommentModal', false)">
+                        Cancelar
+                    </flux:button>
+                    <flux:button type="submit" variant="primary" icon="chat-bubble-left-ellipsis">
+                        Publicar
+                    </flux:button>
+                </div>
+            </form>
+        </flux:modal>
+    @endif
 </div>

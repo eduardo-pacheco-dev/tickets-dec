@@ -298,15 +298,29 @@ it('adds a comment to a station', function () {
     $this->actingAs($user);
 
     Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openCommentModal')
+        ->assertSet('showCommentModal', true)
         ->set('commentBody', 'Observação importante sobre esta estação.')
         ->call('saveComment')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertSet('showCommentModal', false);
 
     $this->assertDatabaseHas('station_comments', [
         'station_id' => $station->id,
         'user_id' => $user->id,
         'body' => 'Observação importante sobre esta estação.',
     ]);
+});
+
+it('opens the comment modal', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openCommentModal')
+        ->assertSet('showCommentModal', true);
 });
 
 it('requires a comment body', function () {
