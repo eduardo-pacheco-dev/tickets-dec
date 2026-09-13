@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Setting;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->applyDatabaseSettings();
     }
 
     /**
@@ -46,5 +49,30 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * Override config values with values persisted in the settings table.
+     */
+    protected function applyDatabaseSettings(): void
+    {
+        if (! $this->settingsTableExists()) {
+            return;
+        }
+
+        $appName = Setting::get('app.name');
+
+        if ($appName !== null) {
+            config(['app.name' => $appName]);
+        }
+    }
+
+    private function settingsTableExists(): bool
+    {
+        try {
+            return Schema::hasTable('settings');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

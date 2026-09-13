@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\ReportType;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -38,6 +39,12 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Inspeção Predial', 'description' => 'Avaliação estrutural e de conservação do prédio.', 'sort_order' => 2],
             ['name' => 'Redes e Telecom', 'description' => 'Avaliação de rede, cabeamento e telecomunicações.', 'sort_order' => 3],
             ['name' => 'Conformidade Técnica', 'description' => 'Verificação de conformidade com normas técnicas.', 'sort_order' => 4],
+        ]);
+
+        Setting::firstOrCreate([
+            'key' => 'app.name',
+        ], [
+            'value' => config('app.name', 'Laravel'),
         ]);
 
         $this->call(StationSeeder::class);
