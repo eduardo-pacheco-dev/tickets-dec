@@ -1,12 +1,48 @@
 <?php
 
+use App\Imports\StationsImport;
 use App\Models\Station;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 new class extends Component
 {
+    use WithFileUploads;
+    use WithPagination;
+
+    #[Url]
+    public string $search = '';
+
+    #[Url]
+    public string $activeFilter = '';
+
+    #[Url]
+    public string $stateFilter = '';
+
+    #[Url]
+    public string $technologyFilter = '';
+
+    #[Url]
+    public string $classificationFilter = '';
+
+    #[Url]
+    public string $sortBy = 'site_id';
+
+    #[Url]
+    public string $sortDirection = 'asc';
+
     public bool $showModal = false;
+
+    public bool $showImportModal = false;
+
+    public $importFile = null;
+
+    public ?array $importResult = null;
 
     public ?int $editingId = null;
 
@@ -112,9 +148,117 @@ new class extends Component
     }
 
     #[Computed]
-    public function stations(): \Illuminate\Database\Eloquent\Collection
+    public function stations(): LengthAwarePaginator
     {
-        return Station::query()->orderBy('site_id')->get();
+        return Station::query()
+            ->when($this->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('site_id', 'like', "%{$search}%")
+                        ->orWhere('address_id', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%")
+                        ->orWhere('neighborhood', 'like', "%{$search}%")
+                        ->orWhere('regional', 'like', "%{$search}%")
+                        ->orWhere('external_id', 'like', "%{$search}%");
+                });
+            })
+            ->when($this->activeFilter !== '', function ($query) {
+                $query->where('is_active', $this->activeFilter === '1');
+            })
+            ->when($this->stateFilter !== '', function ($query) {
+                $query->where('state', $this->stateFilter);
+            })
+            ->when($this->technologyFilter !== '', function ($query) {
+                $query->where('technology', $this->technologyFilter);
+            })
+            ->when($this->classificationFilter !== '', function ($query) {
+                $query->where('classification', $this->classificationFilter);
+            })
+            ->orderBy($this->sortBy, $this->sortDirection)
+            ->orderBy('site_id')
+            ->paginate(15);
+    }
+
+    #[Computed]
+    public function counts(): array
+    {
+        return [
+            'total' => Station::count(),
+            'active' => Station::where('is_active', true)->count(),
+            'inactive' => Station::where('is_active', false)->count(),
+        ];
+    }
+
+    #[Computed]
+    public function states(): array
+    {
+        return Station::query()
+            ->whereNotNull('state')
+            ->distinct()
+            ->orderBy('state')
+            ->pluck('state')
+            ->all();
+    }
+
+    #[Computed]
+    public function technologies(): array
+    {
+        return Station::query()
+            ->whereNotNull('technology')
+            ->distinct()
+            ->orderBy('technology')
+            ->pluck('technology')
+            ->all();
+    }
+
+    #[Computed]
+    public function classifications(): array
+    {
+        return Station::query()
+            ->whereNotNull('classification')
+            ->distinct()
+            ->orderBy('classification')
+            ->pluck('classification')
+            ->all();
+    }
+
+    public function sort(string $column): void
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'activeFilter', 'stateFilter', 'technologyFilter', 'classificationFilter']);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedActiveFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStateFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTechnologyFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedClassificationFilter(): void
+    {
+        $this->resetPage();
     }
 
     public function openCreate(): void
@@ -233,6 +377,28 @@ new class extends Component
         $station->update(['is_active' => ! $station->is_active]);
     }
 
+    public function openImport(): void
+    {
+        $this->importFile = null;
+        $this->importResult = null;
+        $this->showImportModal = true;
+    }
+
+    public function importStations(): void
+    {
+        $this->validate([
+            'importFile' => ['required', 'file', 'extensions:xlsx', 'max:10240'],
+        ]);
+
+        $import = new StationsImport;
+
+        Excel::import($import, $this->importFile, null, 'Xlsx');
+
+        $this->importResult = $import->summary();
+        $this->importFile = null;
+        $this->dispatch('saved');
+    }
+
     public function delete(int $id): void
     {
         Station::findOrFail($id)->delete();
@@ -284,15 +450,119 @@ new class extends Component
         <div>
             <flux:heading size="lg">Estações</flux:heading>
             <flux:text class="mt-1">Cadastro de estações de telecomunicações vinculadas aos sites.</flux:text>
-            <flux:text class="mt-2 text-sm font-medium">{{ count($this->stations) }} estações cadastradas</flux:text>
+            <flux:text class="mt-2 text-sm font-medium">{{ $this->counts['total'] }} estações cadastradas</flux:text>
         </div>
 
-        <flux:button wire:click="openCreate" variant="primary" icon="plus">
-            Nova Estação
-        </flux:button>
+        <div class="flex items-center gap-2">
+            <flux:button wire:click="openImport" variant="subtle" icon="arrow-up-tray">
+                Importar
+            </flux:button>
+
+            <flux:button wire:click="openCreate" variant="primary" icon="plus">
+                Nova Estação
+            </flux:button>
+        </div>
     </div>
 
-    @if (empty($this->stations))
+    @if ($this->activeFilter !== '' || $this->search !== '' || $this->stateFilter !== '' || $this->technologyFilter !== '' || $this->classificationFilter !== '')
+        <div>
+            <flux:button
+                variant="subtle"
+                size="sm"
+                wire:click="resetFilters"
+            >
+                Limpar filtros
+            </flux:button>
+        </div>
+    @endif
+
+    <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-wrap items-center gap-3">
+            <div
+                role="group"
+                aria-label="Filtrar por status"
+                class="flex flex-wrap items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-800/70"
+            >
+                @php
+                    $statusButtonClasses = fn ($active) => 'inline-flex h-9 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-400 dark:focus-visible:outline-zinc-500 ' . ($active
+                        ? 'bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900'
+                        : 'text-zinc-500 hover:bg-zinc-200/40 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white');
+                @endphp
+
+                <button
+                    type="button"
+                    wire:key="status-filter-all"
+                    wire:click="$wire.set('activeFilter', '')"
+                    aria-pressed="{{ $this->activeFilter === '' ? 'true' : 'false' }}"
+                    class="{{ $statusButtonClasses($this->activeFilter === '') }}"
+                >
+                    Todas
+                    <span class="text-xs font-semibold tracking-tight">{{ $this->counts['total'] }}</span>
+                </button>
+
+                <button
+                    type="button"
+                    wire:key="status-filter-active"
+                    wire:click="$wire.set('activeFilter', '1')"
+                    aria-pressed="{{ $this->activeFilter === '1' ? 'true' : 'false' }}"
+                    class="{{ $statusButtonClasses($this->activeFilter === '1') }}"
+                >
+                    <span class="size-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+                    Ativas
+                    <span class="text-xs font-semibold tracking-tight">{{ $this->counts['active'] }}</span>
+                </button>
+
+                <button
+                    type="button"
+                    wire:key="status-filter-inactive"
+                    wire:click="$wire.set('activeFilter', '0')"
+                    aria-pressed="{{ $this->activeFilter === '0' ? 'true' : 'false' }}"
+                    class="{{ $statusButtonClasses($this->activeFilter === '0') }}"
+                >
+                    <span class="size-1.5 shrink-0 rounded-full bg-zinc-400"></span>
+                    Inativas
+                    <span class="text-xs font-semibold tracking-tight">{{ $this->counts['inactive'] }}</span>
+                </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="w-40">
+                    <flux:select wire:model.live="stateFilter" placeholder="UF">
+                        @foreach ($this->states as $state)
+                            <flux:select.option value="{{ $state }}">{{ $state }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                <div class="w-48">
+                    <flux:select wire:model.live="technologyFilter" placeholder="Tecnologia">
+                        @foreach ($this->technologies as $technology)
+                            <flux:select.option value="{{ $technology }}">{{ $technology }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+
+                <div class="w-48">
+                    <flux:select wire:model.live="classificationFilter" placeholder="Classificação">
+                        @foreach ($this->classifications as $classification)
+                            <flux:select.option value="{{ $classification }}">{{ $classification }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-80">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                clearable
+                icon="magnifying-glass"
+                placeholder="Buscar por site, endereço, município, regional..."
+            />
+        </div>
+    </div>
+
+    @if ($this->counts['total'] === 0)
         <flux:card class="py-16 text-center">
             <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                 <flux:icon name="computer-desktop" class="size-6" />
@@ -307,19 +577,43 @@ new class extends Component
         </flux:card>
     @else
         <flux:card class="overflow-hidden">
-            <flux:table bleed>
+            <flux:table bleed :paginate="$this->stations">
                 <flux:table.columns>
-                    <flux:table.column scope="col">Site ID</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'site_id'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('site_id')"
+                    >Site ID</flux:table.column>
                     <flux:table.column scope="col">Endereço ID</flux:table.column>
-                    <flux:table.column scope="col">Elemento</flux:table.column>
-                    <flux:table.column scope="col">Tecnologia</flux:table.column>
-                    <flux:table.column scope="col">Município</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'element_type'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('element_type')"
+                    >Elemento</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'technology'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('technology')"
+                    >Tecnologia</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'city'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('city')"
+                    >Município</flux:table.column>
                     <flux:table.column scope="col">Status</flux:table.column>
                     <flux:table.column scope="col" class="w-px"></flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
-                    @foreach ($this->stations as $station)
+                    @forelse ($this->stations as $station)
                         <flux:table.row
                             wire:key="station-{{ $station->id }}"
                             class="transition-colors hover:bg-zinc-50 dark:hover:bg-white/[3%]"
@@ -376,7 +670,28 @@ new class extends Component
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>
-                    @endforeach
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="7" align="center">
+                                <div class="py-12">
+                                    <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
+                                        <flux:icon name="magnifying-glass" class="size-5" />
+                                    </div>
+                                    <flux:heading size="sm" class="mt-3">Nenhuma estação encontrada</flux:heading>
+                                    <flux:text class="mt-1">Nenhum registro corresponde à busca ou aos filtros aplicados.</flux:text>
+                                    <div class="mt-4">
+                                        <flux:button
+                                            variant="subtle"
+                                            size="sm"
+                                            wire:click="resetFilters"
+                                        >
+                                            Limpar filtros
+                                        </flux:button>
+                                    </div>
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
                 </flux:table.rows>
             </flux:table>
         </flux:card>
@@ -807,6 +1122,138 @@ new class extends Component
                             </div>
                         </form>
                     </div>
+            </div>
+        </flux:modal>
+    @endif
+
+    @if ($showImportModal)
+        <flux:modal wire:model="showImportModal" variant="bare" scroll="body" data-test="import-stations-modal">
+            <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-zinc-800 sm:rounded-3xl">
+                <div class="flex items-start justify-between gap-4 border-b border-zinc-100 px-6 py-5 dark:border-zinc-700/60 sm:px-8 sm:py-6">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
+                            <flux:icon name="arrow-up-tray" class="size-5" />
+                        </div>
+                        <div>
+                            <flux:heading size="lg">Importar Estações</flux:heading>
+                            <flux:text class="mt-0.5 text-sm">Importação em massa a partir de planilha Excel.</flux:text>
+                        </div>
+                    </div>
+
+                    <flux:modal.close>
+                        <flux:button
+                            variant="ghost"
+                            icon="x-mark"
+                            size="sm"
+                            aria-label="Fechar"
+                            class="text-zinc-400! hover:text-zinc-800! dark:text-zinc-500! dark:hover:text-white!"
+                        />
+                    </flux:modal.close>
+                </div>
+
+                <div class="px-6 py-6 sm:px-8 sm:py-8">
+                    <div class="rounded-xl border border-zinc-100 bg-zinc-50/60 p-4 dark:border-zinc-700/60 dark:bg-white/[3%]">
+                        <flux:text class="text-sm">
+                            Baixe o modelo, preencha e envie o arquivo em formato .xlsx. Registros com o mesmo
+                            <span class="font-medium">Site ID</span> serão atualizados; os demais serão criados.
+                            A linha de exemplo do modelo deve ser removida antes do envio.
+                        </flux:text>
+
+                        <div class="mt-3">
+                            <flux:button
+                                as="a"
+                                href="{{ route('admin.stations.import-template') }}"
+                                variant="subtle"
+                                icon="arrow-down-tray"
+                            >
+                                Baixar modelo
+                            </flux:button>
+                        </div>
+                    </div>
+
+                    <form wire:submit="importStations" class="mt-6">
+                        <flux:field>
+                            <flux:label>Planilha (.xlsx)</flux:label>
+
+                            <div
+                                x-data="{ dragging: false }"
+                                @dragover.prevent="dragging = true"
+                                @dragenter.prevent="dragging = true"
+                                @dragleave="dragging = false"
+                                @drop.prevent="
+                                    dragging = false;
+                                    if ($event.dataTransfer.files.length) {
+                                        $refs.fileInput.files = $event.dataTransfer.files;
+                                        $refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                "
+                                @click="$refs.fileInput.click()"
+                                class="relative cursor-pointer rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/60 p-6 text-center transition-colors hover:border-zinc-400 dark:border-zinc-600 dark:bg-white/[3%] dark:hover:border-zinc-400"
+                                :class="dragging ? 'border-amber-500 bg-amber-50/60 dark:border-amber-400 dark:bg-amber-400/10' : ''"
+                            >
+                                <input
+                                    type="file"
+                                    x-ref="fileInput"
+                                    wire:model="importFile"
+                                    accept=".xlsx"
+                                    class="sr-only"
+                                />
+
+                                <flux:icon name="arrow-up-tray" class="mx-auto size-8 text-zinc-400 dark:text-zinc-500" />
+
+                                <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                                    Arraste e solte o arquivo aqui ou
+                                    <span class="font-medium text-amber-600 hover:underline dark:text-amber-400">clique para selecionar</span>
+                                </p>
+
+                                @if ($importFile)
+                                    <p class="mt-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                                        {{ $importFile->getClientOriginalName() }}
+                                    </p>
+                                @endif
+                            </div>
+
+                            <flux:error name="importFile" />
+                        </flux:field>
+
+                        @if ($importResult)
+                            <div class="mt-5 space-y-3">
+                                <div class="flex flex-wrap gap-2">
+                                    <flux:badge color="green" size="sm">
+                                        {{ $importResult['created'] }} criadas
+                                    </flux:badge>
+                                    <flux:badge color="blue" size="sm">
+                                        {{ $importResult['updated'] }} atualizadas
+                                    </flux:badge>
+                                    @if (count($importResult['errors']) > 0)
+                                        <flux:badge color="red" size="sm">
+                                            {{ count($importResult['errors']) }} erros
+                                        </flux:badge>
+                                    @endif
+                                </div>
+
+                                @if (count($importResult['errors']) > 0)
+                                    <div class="max-h-48 overflow-y-auto rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+                                        <ul class="space-y-1 text-sm text-red-600 dark:text-red-300">
+                                            @foreach ($importResult['errors'] as $error)
+                                                <li class="flex gap-2">
+                                                    <span class="shrink-0 font-mono text-xs">Linha {{ $error['row'] }}:</span>
+                                                    <span>{{ $error['message'] }}</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
+                        <div class="mt-6 flex items-center justify-end gap-3">
+                            <flux:button type="submit" variant="primary" icon="arrow-up-tray">
+                                Importar
+                            </flux:button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </flux:modal>
     @endif

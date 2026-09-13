@@ -185,3 +185,129 @@ it('deletes a station', function () {
 
     $this->assertDatabaseMissing('stations', ['id' => $station->id]);
 });
+
+it('searches stations by site id, address id, city, regional or external id', function () {
+    $user = User::factory()->admin()->create();
+    $bySite = Station::factory()->create(['site_id' => '4G-ABLAJ1']);
+    $byCity = Station::factory()->create(['city' => 'ASSIS BRASIL']);
+    $byRegional = Station::factory()->create(['regional' => 'NOR']);
+    $byExternal = Station::factory()->create(['external_id' => 'ACR999TM']);
+    $other = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-list')
+        ->set('search', 'ABLAJ1')
+        ->assertSee($bySite->site_id)
+        ->assertDontSee($byCity->site_id);
+
+    Livewire::test('admin/station-list')
+        ->set('search', 'ASSIS BRASIL')
+        ->assertSee($byCity->site_id)
+        ->assertDontSee($other->site_id);
+
+    Livewire::test('admin/station-list')
+        ->set('search', 'NOR')
+        ->assertSee($byRegional->site_id);
+
+    Livewire::test('admin/station-list')
+        ->set('search', 'ACR999TM')
+        ->assertSee($byExternal->site_id);
+});
+
+it('filters stations by active status', function () {
+    $user = User::factory()->admin()->create();
+    $active = Station::factory()->create(['is_active' => true]);
+    $inactive = Station::factory()->create(['is_active' => false]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-list')
+        ->set('activeFilter', '1')
+        ->assertSee($active->site_id)
+        ->assertDontSee($inactive->site_id);
+
+    Livewire::test('admin/station-list')
+        ->set('activeFilter', '0')
+        ->assertSee($inactive->site_id)
+        ->assertDontSee($active->site_id);
+});
+
+it('filters stations by state', function () {
+    $user = User::factory()->admin()->create();
+    $inAcre = Station::factory()->create(['state' => 'AC']);
+    $inAmazonas = Station::factory()->create(['state' => 'AM']);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-list')
+        ->set('stateFilter', 'AM')
+        ->assertSee($inAmazonas->site_id)
+        ->assertDontSee($inAcre->site_id);
+});
+
+it('filters stations by technology and classification', function () {
+    $user = User::factory()->admin()->create();
+    $lte = Station::factory()->create(['technology' => 'LTE', 'classification' => 'RANSHARING']);
+    $umts = Station::factory()->create(['technology' => 'UMTS', 'classification' => 'ACESSO']);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-list')
+        ->set('technologyFilter', 'LTE')
+        ->assertSee($lte->site_id)
+        ->assertDontSee($umts->site_id);
+
+    Livewire::test('admin/station-list')
+        ->set('classificationFilter', 'ACESSO')
+        ->assertSee($umts->site_id)
+        ->assertDontSee($lte->site_id);
+});
+
+it('sorts stations by a column', function () {
+    $user = User::factory()->admin()->create();
+    Station::factory()->create(['site_id' => '4G-BBBBB', 'technology' => 'LTE']);
+    Station::factory()->create(['site_id' => '4G-AAAAA', 'technology' => 'UMTS']);
+    Station::factory()->create(['site_id' => '4G-CCCCC', 'technology' => 'GSM']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('admin/station-list');
+    $component->call('sort', 'technology');
+    $first = $component->instance()->stations->first();
+    expect($first->technology)->toBe('GSM');
+
+    $component->call('sort', 'technology');
+    $first = $component->instance()->stations->first();
+    expect($first->technology)->toBe('UMTS');
+
+    $component->call('sort', 'site_id');
+    $first = $component->instance()->stations->first();
+    expect($first->site_id)->toBe('4G-AAAAA');
+});
+
+it('resets filters', function () {
+    $user = User::factory()->admin()->create();
+    Station::factory()->create(['site_id' => '4G-ABLAJ1']);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-list')
+        ->set('search', 'ABLAJ1')
+        ->set('activeFilter', '1')
+        ->set('stateFilter', 'AC')
+        ->call('resetFilters')
+        ->assertSet('search', '')
+        ->assertSet('activeFilter', '')
+        ->assertSet('stateFilter', '');
+});
+
+it('paginates the station list', function () {
+    $user = User::factory()->admin()->create();
+    Station::factory()->count(20)->create();
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('admin/station-list');
+    expect($component->instance()->stations->count())->toBe(15);
+});

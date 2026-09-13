@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\StationTemplateController;
 use App\Http\Controllers\TicketTrackingController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('admin/users/{user}/edit', 'admin/user-edit-form')->name('admin.users.edit');
         Route::livewire('admin/report-types', 'admin/report-type-list')->name('admin.report-types.index');
         Route::livewire('admin/stations', 'admin/station-list')->name('admin.stations.index');
+        Route::get('admin/stations/import-template', StationTemplateController::class)->name('admin.stations.import-template');
     });
 });
 
