@@ -39,5 +39,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Redes e Telecom', 'description' => 'Avaliação de rede, cabeamento e telecomunicações.', 'sort_order' => 3],
             ['name' => 'Conformidade Técnica', 'description' => 'Verificação de conformidade com normas técnicas.', 'sort_order' => 4],
         ]);
+
+        $this->call(StationSeeder::class);
     }
 }
