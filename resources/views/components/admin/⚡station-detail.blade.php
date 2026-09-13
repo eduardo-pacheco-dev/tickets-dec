@@ -900,18 +900,18 @@ new class extends Component
                     </flux:modal.close>
                 </div>
 
-                <div class="flex max-h-[85vh] items-center justify-center overflow-auto bg-zinc-100 dark:bg-zinc-900">
+                <div class="flex max-h-[92vh] items-center justify-center overflow-auto bg-zinc-100 dark:bg-zinc-900">
                     @if ($this->previewAttachment->mime_type === 'application/pdf')
                         <iframe
                             src="{{ $this->previewUrl($this->previewAttachment) }}"
                             title="{{ $this->previewAttachment->original_name }}"
-                            class="h-[85vh] w-full border-0"
+                            class="h-[92vh] w-full border-0"
                         ></iframe>
                     @else
                         <img
                             src="{{ $this->previewUrl($this->previewAttachment) }}"
                             alt="{{ $this->previewAttachment->original_name }}"
-                            class="max-h-[85vh] w-auto object-contain"
+                            class="max-h-[92vh] w-auto object-contain"
                         />
                     @endif
                 </div>
