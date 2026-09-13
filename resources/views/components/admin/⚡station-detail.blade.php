@@ -884,7 +884,7 @@ new class extends Component
     @endif
 
     @if ($this->previewAttachment)
-        <flux:modal wire:model="previewAttachmentId" variant="bare" scroll="body" data-test="preview-modal">
+        <flux:modal wire:model="previewAttachmentId" variant="bare" scroll="body" class="w-full max-w-6xl" data-test="preview-modal">
             <div class="w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-zinc-800">
                 <div class="flex items-center justify-between gap-4 border-b border-zinc-100 px-6 py-4 dark:border-zinc-700/60">
                     <flux:heading size="lg" class="truncate">{{ $this->previewAttachment->original_name }}</flux:heading>
