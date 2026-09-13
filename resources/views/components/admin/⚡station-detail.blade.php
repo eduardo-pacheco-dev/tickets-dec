@@ -1,12 +1,24 @@
 <?php
 
+use App\Enums\StationAttachmentType;
 use App\Models\Station;
+use App\Models\StationAttachment;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public Station $station;
+
+    public string $attachmentType = '';
+
+    public $attachmentFile = null;
 
     public function mount(Station $station): void
     {
@@ -55,6 +67,62 @@ new class extends Component
             ]);
 
         return new HtmlString($url);
+    }
+
+    #[Computed]
+    public function attachmentTypes(): array
+    {
+        return [
+            ['value' => StationAttachmentType::Tssr->value, 'label' => StationAttachmentType::Tssr->label()],
+            ['value' => StationAttachmentType::Ppi->value, 'label' => StationAttachmentType::Ppi->label()],
+        ];
+    }
+
+    #[Computed]
+    public function attachments(): LengthAwarePaginator
+    {
+        return $this->station->attachments()
+            ->latest()
+            ->paginate(10);
+    }
+
+    public function downloadAttachment(int $id): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $attachment = $this->station->attachments()->findOrFail($id);
+
+        return Storage::disk('public')->download($attachment->path, $attachment->original_name);
+    }
+
+    public function saveAttachment(): void
+    {
+        $this->validate([
+            'attachmentType' => ['required', 'in:'.implode(',', array_column(StationAttachmentType::cases(), 'value'))],
+            'attachmentFile' => ['required', 'file', 'mimes:pdf,zip', 'max:20480'],
+        ]);
+
+        $path = $this->attachmentFile->store('station-attachments', 'public');
+
+        $this->station->attachments()->create([
+            'type' => $this->attachmentType,
+            'original_name' => $this->attachmentFile->getClientOriginalName(),
+            'path' => $path,
+            'mime_type' => $this->attachmentFile->getMimeType(),
+            'size' => $this->attachmentFile->getSize(),
+            'uploaded_by' => auth()->id(),
+        ]);
+
+        $this->reset('attachmentType', 'attachmentFile');
+        $this->dispatch('attachment-saved');
+    }
+
+    public function deleteAttachment(int $id): void
+    {
+        $attachment = $this->station->attachments()->findOrFail($id);
+
+        Storage::disk('public')->delete($attachment->path);
+        $attachment->delete();
+
+        $this->dispatch('attachment-deleted');
     }
 };
 ?>
@@ -320,5 +388,107 @@ new class extends Component
             </div>
             <flux:text class="mt-3">{{ $this->value($this->station->justification) }}</flux:text>
         </div>
+    </div>
+
+    <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
+        <div class="flex items-center gap-2">
+            <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
+                <flux:icon name="paper-clip" class="size-4" />
+            </div>
+            <flux:heading size="sm">Anexos (TSSR / PPI)</flux:heading>
+        </div>
+        <flux:text class="mt-1 text-sm">Projeto preliminar de instalação da estação. Formatos aceitos: PDF e ZIP.</flux:text>
+
+        <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <flux:field>
+                    <flux:label>Tipo</flux:label>
+                    <flux:select wire:model="attachmentType" placeholder="Selecione o tipo...">
+                        @foreach ($this->attachmentTypes as $type)
+                            <flux:select.option value="{{ $type['value'] }}">{{ $type['label'] }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="attachmentType" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Arquivo</flux:label>
+                    <input
+                        type="file"
+                        wire:model="attachmentFile"
+                        accept=".pdf,.zip"
+                        class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
+                    />
+                    <flux:error name="attachmentFile" />
+                </flux:field>
+            </div>
+
+            <div>
+                <flux:button
+                    wire:click="saveAttachment"
+                    variant="primary"
+                    icon="arrow-up-tray"
+                    :disabled="! $this->attachmentType || ! $this->attachmentFile"
+                >
+                    Enviar anexo
+                </flux:button>
+            </div>
+        </div>
+
+        @if ($this->attachments->isNotEmpty())
+            <div class="mt-6 overflow-hidden rounded-xl ring-1 ring-zinc-200 dark:ring-zinc-700">
+                <div class="divide-y divide-zinc-100 dark:divide-zinc-700/60">
+                    @foreach ($this->attachments as $attachment)
+                        <div wire:key="attachment-{{ $attachment->id }}" class="flex items-center gap-4 p-4">
+                            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
+                                <flux:icon :name="$attachment->type === \App\Enums\StationAttachmentType::Ppi ? 'cube' : 'document'" class="size-5" />
+                            </div>
+
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <flux:badge color="blue" size="sm">{{ $attachment->type->label() }}</flux:badge>
+                                    <span class="truncate text-sm font-medium">{{ $attachment->original_name }}</span>
+                                </div>
+                                <flux:text class="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                                    {{ $attachment->humanSize() }} · {{ $attachment->created_at->format('d/m/Y H:i') }}
+                                    @if ($attachment->uploader)
+                                        · {{ $attachment->uploader->name }}
+                                    @endif
+                                </flux:text>
+                            </div>
+
+                            <div class="flex shrink-0 items-center gap-1">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon-only
+                                    icon="arrow-down-tray"
+                                    wire:click="downloadAttachment({{ $attachment->id }})"
+                                    :aria-label="'Baixar ' . $attachment->original_name"
+                                />
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon-only
+                                    icon="trash"
+                                    wire:click="deleteAttachment({{ $attachment->id }})"
+                                    wire:confirm="Tem certeza que deseja excluir este anexo?"
+                                    :aria-label="'Excluir ' . $attachment->original_name"
+                                />
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <flux:pagination :paginator="$this->attachments" />
+            </div>
+        @else
+            <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
+                <flux:icon name="paper-clip" class="size-6 text-zinc-400 dark:text-zinc-500" />
+                <flux:text class="text-sm">Nenhum anexo cadastrado para esta estação.</flux:text>
+            </div>
+        @endif
     </div>
 </div>

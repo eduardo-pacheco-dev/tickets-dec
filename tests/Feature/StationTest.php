@@ -1,7 +1,10 @@
 <?php
 
 use App\Models\Station;
+use App\Models\StationAttachment;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 it('redirects guests away from the admin stations page', function () {
@@ -115,6 +118,134 @@ it('renders a placeholder when the station has no coordinates', function () {
         ->assertSee('Localização no Mapa')
         ->assertDontSee('openstreetmap.org/export/embed.html')
         ->assertSee('não possui coordenadas');
+});
+
+it('uploads a TSSR attachment to a station', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'tssr')
+        ->set('attachmentFile', UploadedFile::fake()->create('tssr.pdf', 100, 'application/pdf'))
+        ->call('saveAttachment')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('station_attachments', [
+        'station_id' => $station->id,
+        'type' => 'tssr',
+        'original_name' => 'tssr.pdf',
+        'uploaded_by' => $user->id,
+    ]);
+
+    Storage::disk('public')->assertExists(StationAttachment::first()->path);
+});
+
+it('uploads a PPI attachment to a station', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'ppi')
+        ->set('attachmentFile', UploadedFile::fake()->create('ppi.zip', 100, 'application/zip'))
+        ->call('saveAttachment')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('station_attachments', [
+        'station_id' => $station->id,
+        'type' => 'ppi',
+        'original_name' => 'ppi.zip',
+    ]);
+});
+
+it('rejects invalid attachment types', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'invalid')
+        ->set('attachmentFile', UploadedFile::fake()->create('file.pdf', 100, 'application/pdf'))
+        ->call('saveAttachment')
+        ->assertHasErrors(['attachmentType']);
+
+    $this->assertDatabaseCount('station_attachments', 0);
+});
+
+it('rejects non pdf or zip attachments', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('attachmentType', 'tssr')
+        ->set('attachmentFile', UploadedFile::fake()->create('file.png', 100, 'image/png'))
+        ->call('saveAttachment')
+        ->assertHasErrors(['attachmentFile']);
+
+    $this->assertDatabaseCount('station_attachments', 0);
+});
+
+it('lists station attachments', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    StationAttachment::factory()->count(3)->create(['station_id' => $station->id]);
+
+    $this->actingAs($user);
+
+    $this->get(route('admin.stations.show', $station))
+        ->assertOk()
+        ->assertSee('Anexos (TSSR / PPI)');
+});
+
+it('deletes a station attachment', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $attachment = StationAttachment::factory()->create(['station_id' => $station->id]);
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Storage::disk('public')->put($attachment->path, 'conteúdo');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('deleteAttachment', $attachment->id);
+
+    $this->assertDatabaseMissing('station_attachments', ['id' => $attachment->id]);
+    Storage::disk('public')->assertMissing($attachment->path);
+});
+
+it('downloads a station attachment', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $attachment = StationAttachment::factory()->create([
+        'station_id' => $station->id,
+        'original_name' => 'tssr.pdf',
+    ]);
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Storage::disk('public')->put($attachment->path, 'conteúdo do arquivo');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('downloadAttachment', $attachment->id)
+        ->assertFileDownloaded('tssr.pdf');
 });
 
 it('creates a station', function () {
