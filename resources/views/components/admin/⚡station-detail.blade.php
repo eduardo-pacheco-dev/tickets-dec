@@ -724,7 +724,7 @@ new class extends Component
             />
             <flux:error name="commentBody" />
             <div class="flex justify-end">
-                <flux:button type="submit" variant="primary" icon="chat-bubble-left-ellipsis" :disabled="! $this->commentBody">
+                <flux:button type="submit" variant="primary" icon="chat-bubble-left-ellipsis">
                     Comentar
                 </flux:button>
             </div>
