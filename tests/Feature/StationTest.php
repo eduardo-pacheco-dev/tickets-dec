@@ -100,7 +100,9 @@ it('renders a map section when the station has coordinates', function () {
         ->assertSee('Localização no Mapa')
         ->assertSee('openstreetmap.org/export/embed.html')
         ->assertSee('marker=-10.925094%2C-69.554056')
-        ->assertSee('Abrir no OpenStreetMap');
+        ->assertSee('Abrir no OpenStreetMap')
+        ->assertSee('google.com/maps?q=-10.925094,-69.554056')
+        ->assertSee('Abrir no Google Maps');
 });
 
 it('renders a placeholder when the station has no coordinates', function () {

@@ -258,15 +258,27 @@ new class extends Component
             </div>
 
             @if ($this->hasCoordinates())
-                <flux:button
-                    variant="ghost"
-                    size="sm"
-                    icon="arrow-top-right-on-square"
-                    :href="'https://www.openstreetmap.org/?mlat=' . (float) $this->station->latitude . '&mlon=' . (float) $this->station->longitude . '#map=17/' . (float) $this->station->latitude . '/' . (float) $this->station->longitude"
-                    target="_blank"
-                >
-                    Abrir no OpenStreetMap
-                </flux:button>
+                <div class="flex items-center gap-2">
+                    <flux:button
+                        variant="ghost"
+                        size="sm"
+                        icon="map-pin"
+                        :href="'https://www.google.com/maps?q=' . (float) $this->station->latitude . ',' . (float) $this->station->longitude"
+                        target="_blank"
+                    >
+                        Abrir no Google Maps
+                    </flux:button>
+
+                    <flux:button
+                        variant="ghost"
+                        size="sm"
+                        icon="arrow-top-right-on-square"
+                        :href="'https://www.openstreetmap.org/?mlat=' . (float) $this->station->latitude . '&mlon=' . (float) $this->station->longitude . '#map=17/' . (float) $this->station->latitude . '/' . (float) $this->station->longitude"
+                        target="_blank"
+                    >
+                        Abrir no OpenStreetMap
+                    </flux:button>
+                </div>
             @endif
         </div>
 
@@ -275,7 +287,7 @@ new class extends Component
                 <iframe
                     src="{{ $this->mapEmbedUrl() }}"
                     title="Mapa da estação {{ $this->station->site_id }}"
-                    class="h-[420px] w-full border-0"
+                    class="h-[600px] w-full border-0"
                     loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade"
                 ></iframe>
