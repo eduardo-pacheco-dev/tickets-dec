@@ -19,9 +19,6 @@
                         <flux:sidebar.item icon="ticket" :href="route('admin.tickets.index')" :current="request()->routeIs('admin.tickets.*')" wire:navigate>
                             {{ __('Tickets') }}
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="bell" :href="route('admin.notifications.index')" :current="request()->routeIs('admin.notifications.*')" wire:navigate>
-                            {{ __('Notificações') }}
-                        </flux:sidebar.item>
                     @endif
                     @if (auth()->user()?->role?->canManageUsers())
                         <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
