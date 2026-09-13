@@ -2,6 +2,7 @@
 
 use App\Models\Station;
 use App\Models\StationAttachment;
+use App\Models\StationComment;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -288,6 +289,109 @@ it('does not offer outros in the typed attachment selector', function () {
     Livewire::test('admin/station-detail', ['station' => $station])
         ->assertSee('Outros Anexos')
         ->assertDontSee('value="outros"');
+});
+
+it('adds a comment to a station', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('commentBody', 'Observação importante sobre esta estação.')
+        ->call('saveComment')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('station_comments', [
+        'station_id' => $station->id,
+        'user_id' => $user->id,
+        'body' => 'Observação importante sobre esta estação.',
+    ]);
+});
+
+it('requires a comment body', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('saveComment')
+        ->assertHasErrors(['commentBody']);
+
+    $this->assertDatabaseCount('station_comments', 0);
+});
+
+it('lists station comments', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $comment = StationComment::factory()->create(['station_id' => $station->id, 'user_id' => $user->id]);
+
+    $this->actingAs($user);
+
+    $this->get(route('admin.stations.show', $station))
+        ->assertOk()
+        ->assertSee($comment->body);
+});
+
+it('edits an own comment', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $comment = StationComment::factory()->create(['station_id' => $station->id, 'user_id' => $user->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('startEditingComment', $comment->id)
+        ->set('editingCommentBody', 'Comentário atualizado.')
+        ->call('updateComment')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('station_comments', [
+        'id' => $comment->id,
+        'body' => 'Comentário atualizado.',
+    ]);
+});
+
+it('denies editing another users comment', function () {
+    $user = User::factory()->admin()->create();
+    $other = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $comment = StationComment::factory()->create(['station_id' => $station->id, 'user_id' => $other->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('startEditingComment', $comment->id)
+        ->assertForbidden();
+});
+
+it('deletes an own comment', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $comment = StationComment::factory()->create(['station_id' => $station->id, 'user_id' => $user->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('deleteComment', $comment->id);
+
+    $this->assertDatabaseMissing('station_comments', ['id' => $comment->id]);
+});
+
+it('denies deleting another users comment', function () {
+    $user = User::factory()->admin()->create();
+    $other = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $comment = StationComment::factory()->create(['station_id' => $station->id, 'user_id' => $other->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('deleteComment', $comment->id)
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('station_comments', ['id' => $comment->id]);
 });
 
 it('rejects invalid attachment types', function () {

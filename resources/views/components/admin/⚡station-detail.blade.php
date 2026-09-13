@@ -22,6 +22,12 @@ new class extends Component
 
     public $otherAttachmentFile = null;
 
+    public string $commentBody = '';
+
+    public ?int $editingCommentId = null;
+
+    public string $editingCommentBody = '';
+
     public function mount(Station $station): void
     {
         $this->station = $station;
@@ -171,6 +177,77 @@ new class extends Component
         $attachment->delete();
 
         $this->dispatch('attachment-deleted');
+    }
+
+    #[Computed]
+    public function comments(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->station->comments()
+            ->with('user')
+            ->latest()
+            ->get();
+    }
+
+    public function saveComment(): void
+    {
+        $this->validate([
+            'commentBody' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $this->station->comments()->create([
+            'user_id' => auth()->id(),
+            'body' => $this->commentBody,
+        ]);
+
+        $this->reset('commentBody');
+        $this->dispatch('comment-saved');
+    }
+
+    public function startEditingComment(int $id): void
+    {
+        $comment = $this->station->comments()->findOrFail($id);
+
+        if ($comment->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $this->editingCommentId = $comment->id;
+        $this->editingCommentBody = $comment->body;
+    }
+
+    public function cancelEditingComment(): void
+    {
+        $this->reset('editingCommentId', 'editingCommentBody');
+    }
+
+    public function updateComment(): void
+    {
+        $this->validate([
+            'editingCommentBody' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $comment = $this->station->comments()->findOrFail($this->editingCommentId);
+
+        if ($comment->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $comment->update(['body' => $this->editingCommentBody]);
+
+        $this->reset('editingCommentId', 'editingCommentBody');
+        $this->dispatch('comment-updated');
+    }
+
+    public function deleteComment(int $id): void
+    {
+        $comment = $this->station->comments()->findOrFail($id);
+
+        if ($comment->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $comment->delete();
+        $this->dispatch('comment-deleted');
     }
 };
 ?>
@@ -626,6 +703,93 @@ new class extends Component
             <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
                 <flux:icon name="archive-box" class="size-6 text-zinc-400 dark:text-zinc-500" />
                 <flux:text class="text-sm">Nenhum anexo neste grupo.</flux:text>
+            </div>
+        @endif
+    </div>
+
+    <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
+        <div class="flex items-center gap-2">
+            <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
+                <flux:icon name="chat-bubble-left-ellipsis" class="size-4" />
+            </div>
+            <flux:heading size="sm">Comentários</flux:heading>
+        </div>
+        <flux:text class="mt-1 text-sm">Anotações e discussões sobre esta estação.</flux:text>
+
+        <form wire:submit="saveComment" class="mt-4 space-y-3">
+            <flux:textarea
+                wire:model="commentBody"
+                rows="3"
+                placeholder="Escreva um comentário..."
+            />
+            <flux:error name="commentBody" />
+            <div class="flex justify-end">
+                <flux:button type="submit" variant="primary" icon="chat-bubble-left-ellipsis" :disabled="! $this->commentBody">
+                    Comentar
+                </flux:button>
+            </div>
+        </form>
+
+        @if ($this->comments->isNotEmpty())
+            <div class="mt-6 space-y-4">
+                @foreach ($this->comments as $comment)
+                    <div wire:key="comment-{{ $comment->id }}" class="rounded-xl border border-zinc-100 bg-zinc-50/60 p-4 dark:border-zinc-700/60 dark:bg-white/[3%]">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <flux:avatar size="xs" :name="$comment->user->name" :initials="$comment->user->initials()" />
+                                <flux:text class="text-sm font-medium">{{ $comment->user->name }}</flux:text>
+                                <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">{{ $comment->created_at->format('d/m/Y H:i') }}</flux:text>
+                            </div>
+
+                            @if ($comment->user_id === auth()->id())
+                                <div class="flex items-center gap-1">
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon-only
+                                        icon="pencil"
+                                        wire:click="startEditingComment({{ $comment->id }})"
+                                        :aria-label="'Editar comentário'"
+                                    />
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon-only
+                                        icon="trash"
+                                        wire:click="deleteComment({{ $comment->id }})"
+                                        wire:confirm="Tem certeza que deseja excluir este comentário?"
+                                        :aria-label="'Excluir comentário'"
+                                    />
+                                </div>
+                            @endif
+                        </div>
+
+                        @if ($this->editingCommentId === $comment->id)
+                            <form wire:submit="updateComment" class="mt-3 space-y-3">
+                                <flux:textarea
+                                    wire:model="editingCommentBody"
+                                    rows="3"
+                                />
+                                <flux:error name="editingCommentBody" />
+                                <div class="flex justify-end gap-2">
+                                    <flux:button type="button" variant="subtle" size="sm" wire:click="cancelEditingComment">
+                                        Cancelar
+                                    </flux:button>
+                                    <flux:button type="submit" variant="primary" size="sm" icon="check">
+                                        Salvar
+                                    </flux:button>
+                                </div>
+                            </form>
+                        @else
+                            <flux:text class="mt-2 whitespace-pre-line">{{ $comment->body }}</flux:text>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
+                <flux:icon name="chat-bubble-left-ellipsis" class="size-6 text-zinc-400 dark:text-zinc-500" />
+                <flux:text class="text-sm">Nenhum comentário ainda.</flux:text>
             </div>
         @endif
     </div>

@@ -103,6 +103,14 @@ class Station extends Model
         return $this->hasMany(StationAttachment::class);
     }
 
+    /**
+     * @return HasMany<StationComment, $this>
+     */
+    public function comments()
+    {
+        return $this->hasMany(StationComment::class);
+    }
+
     public function getDisplayNameAttribute(): string
     {
         return trim($this->site_id).' — '.trim($this->city.'/'.$this->state);
