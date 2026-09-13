@@ -34,6 +34,8 @@ new class extends Component
 
     public string $editingCommentBody = '';
 
+    public ?int $previewAttachmentId = null;
+
     public function mount(Station $station): void
     {
         $this->station = $station;
@@ -130,6 +132,40 @@ new class extends Component
         $attachment = $this->station->attachments()->findOrFail($id);
 
         return Storage::disk('public')->download($attachment->path, $attachment->original_name);
+    }
+
+    public function openPreview(int $id): void
+    {
+        $this->previewAttachmentId = $id;
+    }
+
+    public function closePreview(): void
+    {
+        $this->reset('previewAttachmentId');
+    }
+
+    #[Computed]
+    public function previewAttachment(): ?StationAttachment
+    {
+        if (! $this->previewAttachmentId) {
+            return null;
+        }
+
+        return $this->station->attachments()->findOrFail($this->previewAttachmentId);
+    }
+
+    public function isPreviewableAttachment(?StationAttachment $attachment): bool
+    {
+        if (! $attachment) {
+            return false;
+        }
+
+        return str_starts_with($attachment->mime_type, 'image/') || $attachment->mime_type === 'application/pdf';
+    }
+
+    public function previewUrl(?StationAttachment $attachment): string
+    {
+        return Storage::disk('public')->url($attachment->path);
     }
 
     public function openAttachmentModal(): void
@@ -578,6 +614,16 @@ new class extends Component
                             </div>
 
                             <div class="flex shrink-0 items-center gap-1">
+                                @if ($this->isPreviewableAttachment($attachment))
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon-only
+                                        icon="eye"
+                                        wire:click="openPreview({{ $attachment->id }})"
+                                        :aria-label="'Visualizar ' . $attachment->original_name"
+                                    />
+                                @endif
                                 <flux:button
                                     variant="ghost"
                                     size="sm"
@@ -648,6 +694,16 @@ new class extends Component
                             </div>
 
                             <div class="flex shrink-0 items-center gap-1">
+                                @if ($this->isPreviewableAttachment($attachment))
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon-only
+                                        icon="eye"
+                                        wire:click="openPreview({{ $attachment->id }})"
+                                        :aria-label="'Visualizar ' . $attachment->original_name"
+                                    />
+                                @endif
                                 <flux:button
                                     variant="ghost"
                                     size="sm"
@@ -824,6 +880,41 @@ new class extends Component
                     </flux:button>
                 </div>
             </form>
+        </flux:modal>
+    @endif
+
+    @if ($this->previewAttachment)
+        <flux:modal wire:model="previewAttachmentId" data-test="preview-modal">
+            <flux:heading size="lg">{{ $this->previewAttachment->original_name }}</flux:heading>
+
+            <div class="mt-4 flex max-h-[70vh] items-center justify-center overflow-auto rounded-xl bg-zinc-50 dark:bg-white/5">
+                @if ($this->previewAttachment->mime_type === 'application/pdf')
+                    <iframe
+                        src="{{ $this->previewUrl($this->previewAttachment) }}"
+                        title="{{ $this->previewAttachment->original_name }}"
+                        class="h-[70vh] w-full border-0"
+                    ></iframe>
+                @else
+                    <img
+                        src="{{ $this->previewUrl($this->previewAttachment) }}"
+                        alt="{{ $this->previewAttachment->original_name }}"
+                        class="max-h-[70vh] w-auto object-contain"
+                    />
+                @endif
+            </div>
+
+            <div class="mt-4 flex justify-end gap-3">
+                <flux:button variant="subtle" wire:click="closePreview">
+                    Fechar
+                </flux:button>
+                <flux:button
+                    variant="primary"
+                    icon="arrow-down-tray"
+                    wire:click="downloadAttachment({{ $this->previewAttachment->id }})"
+                >
+                    Baixar
+                </flux:button>
+            </div>
         </flux:modal>
     @endif
 

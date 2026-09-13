@@ -497,6 +497,89 @@ it('downloads a station attachment', function () {
         ->assertFileDownloaded('tssr.pdf');
 });
 
+it('opens a preview for a pdf attachment', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $attachment = StationAttachment::factory()->create([
+        'station_id' => $station->id,
+        'mime_type' => 'application/pdf',
+    ]);
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openPreview', $attachment->id)
+        ->assertSet('previewAttachmentId', $attachment->id);
+
+    $component = Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openPreview', $attachment->id)
+        ->assertSee('preview-modal');
+
+    expect($component->instance()->previewAttachment->id)->toBe($attachment->id);
+    expect($component->instance()->previewAttachment->mime_type)->toBe('application/pdf');
+});
+
+it('opens a preview for an image attachment', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $attachment = StationAttachment::factory()->create([
+        'station_id' => $station->id,
+        'mime_type' => 'image/png',
+    ]);
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    $component = Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openPreview', $attachment->id)
+        ->assertSee('preview-modal');
+
+    expect($component->instance()->previewAttachment->mime_type)->toBe('image/png');
+});
+
+it('does not open a preview for a zip attachment', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $attachment = StationAttachment::factory()->create([
+        'station_id' => $station->id,
+        'mime_type' => 'application/zip',
+    ]);
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openPreview', $attachment->id)
+        ->assertSet('previewAttachmentId', $attachment->id);
+
+    $component = Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openPreview', $attachment->id);
+
+    expect($component->instance()->isPreviewableAttachment($component->instance()->previewAttachment))->toBeFalse();
+});
+
+it('closes the attachment preview', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+    $attachment = StationAttachment::factory()->create([
+        'station_id' => $station->id,
+        'mime_type' => 'application/pdf',
+    ]);
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('openPreview', $attachment->id)
+        ->call('closePreview')
+        ->assertSet('previewAttachmentId', null);
+});
+
 it('creates a station', function () {
     $user = User::factory()->admin()->create();
 
