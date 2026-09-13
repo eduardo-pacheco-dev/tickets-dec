@@ -884,36 +884,50 @@ new class extends Component
     @endif
 
     @if ($this->previewAttachment)
-        <flux:modal wire:model="previewAttachmentId" data-test="preview-modal">
-            <flux:heading size="lg">{{ $this->previewAttachment->original_name }}</flux:heading>
+        <flux:modal wire:model="previewAttachmentId" variant="bare" scroll="body" data-test="preview-modal">
+            <div class="w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-zinc-800">
+                <div class="flex items-center justify-between gap-4 border-b border-zinc-100 px-6 py-4 dark:border-zinc-700/60">
+                    <flux:heading size="lg" class="truncate">{{ $this->previewAttachment->original_name }}</flux:heading>
 
-            <div class="mt-4 flex max-h-[70vh] items-center justify-center overflow-auto rounded-xl bg-zinc-50 dark:bg-white/5">
-                @if ($this->previewAttachment->mime_type === 'application/pdf')
-                    <iframe
-                        src="{{ $this->previewUrl($this->previewAttachment) }}"
-                        title="{{ $this->previewAttachment->original_name }}"
-                        class="h-[70vh] w-full border-0"
-                    ></iframe>
-                @else
-                    <img
-                        src="{{ $this->previewUrl($this->previewAttachment) }}"
-                        alt="{{ $this->previewAttachment->original_name }}"
-                        class="max-h-[70vh] w-auto object-contain"
-                    />
-                @endif
-            </div>
+                    <flux:modal.close>
+                        <flux:button
+                            variant="ghost"
+                            icon="x-mark"
+                            size="sm"
+                            aria-label="Fechar"
+                            class="text-zinc-400! hover:text-zinc-800! dark:text-zinc-500! dark:hover:text-white!"
+                        />
+                    </flux:modal.close>
+                </div>
 
-            <div class="mt-4 flex justify-end gap-3">
-                <flux:button variant="subtle" wire:click="closePreview">
-                    Fechar
-                </flux:button>
-                <flux:button
-                    variant="primary"
-                    icon="arrow-down-tray"
-                    wire:click="downloadAttachment({{ $this->previewAttachment->id }})"
-                >
-                    Baixar
-                </flux:button>
+                <div class="flex max-h-[85vh] items-center justify-center overflow-auto bg-zinc-100 dark:bg-zinc-900">
+                    @if ($this->previewAttachment->mime_type === 'application/pdf')
+                        <iframe
+                            src="{{ $this->previewUrl($this->previewAttachment) }}"
+                            title="{{ $this->previewAttachment->original_name }}"
+                            class="h-[85vh] w-full border-0"
+                        ></iframe>
+                    @else
+                        <img
+                            src="{{ $this->previewUrl($this->previewAttachment) }}"
+                            alt="{{ $this->previewAttachment->original_name }}"
+                            class="max-h-[85vh] w-auto object-contain"
+                        />
+                    @endif
+                </div>
+
+                <div class="flex items-center justify-end gap-3 border-t border-zinc-100 px-6 py-4 dark:border-zinc-700/60">
+                    <flux:button variant="subtle" wire:click="closePreview">
+                        Fechar
+                    </flux:button>
+                    <flux:button
+                        variant="primary"
+                        icon="arrow-down-tray"
+                        wire:click="downloadAttachment({{ $this->previewAttachment->id }})"
+                    >
+                        Baixar
+                    </flux:button>
+                </div>
             </div>
         </flux:modal>
     @endif
