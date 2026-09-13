@@ -8,6 +8,7 @@ enum StationAttachmentType: string
     case Ppi = 'ppi';
     case DocD = 'doc_d';
     case NotaFiscal = 'nota_fiscal';
+    case Outros = 'outros';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum StationAttachmentType: string
             self::Ppi => 'PPI',
             self::DocD => 'DOC-D',
             self::NotaFiscal => 'Nota Fiscal',
+            self::Outros => 'Outros',
         };
     }
 }

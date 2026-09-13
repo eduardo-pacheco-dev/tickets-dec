@@ -46,4 +46,9 @@ class StationAttachmentFactory extends Factory
     {
         return $this->state(fn () => ['type' => StationAttachmentType::NotaFiscal->value]);
     }
+
+    public function outros(): static
+    {
+        return $this->state(fn () => ['type' => StationAttachmentType::Outros->value]);
+    }
 }

@@ -20,6 +20,8 @@ new class extends Component
 
     public $attachmentFile = null;
 
+    public $otherAttachmentFile = null;
+
     public function mount(Station $station): void
     {
         $this->station = $station;
@@ -74,7 +76,10 @@ new class extends Component
     {
         return array_map(
             fn (StationAttachmentType $type) => ['value' => $type->value, 'label' => $type->label()],
-            StationAttachmentType::cases()
+            array_filter(
+                StationAttachmentType::cases(),
+                fn (StationAttachmentType $type) => $type !== StationAttachmentType::Outros
+            )
         );
     }
 
@@ -97,6 +102,15 @@ new class extends Component
         return $this->station->attachments()
             ->latest()
             ->paginate(10);
+    }
+
+    #[Computed]
+    public function otherAttachments(): LengthAwarePaginator
+    {
+        return $this->station->attachments()
+            ->where('type', StationAttachmentType::Outros->value)
+            ->latest()
+            ->paginate(10, pageName: 'other_page');
     }
 
     public function downloadAttachment(int $id): \Symfony\Component\HttpFoundation\StreamedResponse
@@ -126,6 +140,27 @@ new class extends Component
 
         $this->reset('attachmentType', 'attachmentFile');
         $this->dispatch('attachment-saved');
+    }
+
+    public function saveOtherAttachment(): void
+    {
+        $this->validate([
+            'otherAttachmentFile' => ['required', 'file', 'max:20480'],
+        ]);
+
+        $path = $this->otherAttachmentFile->store('station-attachments/outros', 'public');
+
+        $this->station->attachments()->create([
+            'type' => StationAttachmentType::Outros->value,
+            'original_name' => $this->otherAttachmentFile->getClientOriginalName(),
+            'path' => $path,
+            'mime_type' => $this->otherAttachmentFile->getMimeType(),
+            'size' => $this->otherAttachmentFile->getSize(),
+            'uploaded_by' => auth()->id(),
+        ]);
+
+        $this->reset('otherAttachmentFile');
+        $this->dispatch('other-attachment-saved');
     }
 
     public function deleteAttachment(int $id): void
@@ -503,6 +538,94 @@ new class extends Component
             <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
                 <flux:icon name="paper-clip" class="size-6 text-zinc-400 dark:text-zinc-500" />
                 <flux:text class="text-sm">Nenhum anexo cadastrado para esta estação.</flux:text>
+            </div>
+        @endif
+    </div>
+
+    <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
+        <div class="flex items-center gap-2">
+            <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
+                <flux:icon name="archive-box" class="size-4" />
+            </div>
+            <flux:heading size="sm">Outros Anexos</flux:heading>
+        </div>
+        <flux:text class="mt-1 text-sm">Arquivos diversos relacionados à estação. Qualquer formato é aceito.</flux:text>
+
+        <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <flux:field>
+                <flux:label>Arquivo</flux:label>
+                <input
+                    type="file"
+                    wire:model="otherAttachmentFile"
+                    class="block w-full text-sm text-zinc-700 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-white/10 dark:file:text-zinc-300 dark:hover:file:bg-white/15"
+                />
+                <flux:error name="otherAttachmentFile" />
+            </flux:field>
+
+            <div>
+                <flux:button
+                    wire:click="saveOtherAttachment"
+                    variant="primary"
+                    icon="arrow-up-tray"
+                    :disabled="! $this->otherAttachmentFile"
+                >
+                    Enviar anexo
+                </flux:button>
+            </div>
+        </div>
+
+        @if ($this->otherAttachments->isNotEmpty())
+            <div class="mt-6 overflow-hidden rounded-xl ring-1 ring-zinc-200 dark:ring-zinc-700">
+                <div class="divide-y divide-zinc-100 dark:divide-zinc-700/60">
+                    @foreach ($this->otherAttachments as $attachment)
+                        <div wire:key="other-attachment-{{ $attachment->id }}" class="flex items-center gap-4 p-4">
+                            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
+                                <flux:icon name="archive-box" class="size-5" />
+                            </div>
+
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="truncate text-sm font-medium">{{ $attachment->original_name }}</span>
+                                </div>
+                                <flux:text class="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                                    {{ $attachment->humanSize() }} · {{ $attachment->created_at->format('d/m/Y H:i') }}
+                                    @if ($attachment->uploader)
+                                        · {{ $attachment->uploader->name }}
+                                    @endif
+                                </flux:text>
+                            </div>
+
+                            <div class="flex shrink-0 items-center gap-1">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon-only
+                                    icon="arrow-down-tray"
+                                    wire:click="downloadAttachment({{ $attachment->id }})"
+                                    :aria-label="'Baixar ' . $attachment->original_name"
+                                />
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon-only
+                                    icon="trash"
+                                    wire:click="deleteAttachment({{ $attachment->id }})"
+                                    wire:confirm="Tem certeza que deseja excluir este anexo?"
+                                    :aria-label="'Excluir ' . $attachment->original_name"
+                                />
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <flux:pagination :paginator="$this->otherAttachments" />
+            </div>
+        @else
+            <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
+                <flux:icon name="archive-box" class="size-6 text-zinc-400 dark:text-zinc-500" />
+                <flux:text class="text-sm">Nenhum anexo neste grupo.</flux:text>
             </div>
         @endif
     </div>

@@ -241,6 +241,55 @@ it('rejects non pdf files for Nota Fiscal attachments', function () {
     $this->assertDatabaseCount('station_attachments', 0);
 });
 
+it('uploads an other attachment with any format', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->set('otherAttachmentFile', UploadedFile::fake()->create('planta.png', 100, 'image/png'))
+        ->call('saveOtherAttachment')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('station_attachments', [
+        'station_id' => $station->id,
+        'type' => 'outros',
+        'original_name' => 'planta.png',
+        'uploaded_by' => $user->id,
+    ]);
+
+    Storage::disk('public')->assertExists(StationAttachment::first()->path);
+});
+
+it('requires an other attachment file to save', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create();
+
+    $this->actingAs($user);
+
+    Storage::fake('public');
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->call('saveOtherAttachment')
+        ->assertHasErrors(['otherAttachmentFile']);
+
+    $this->assertDatabaseCount('station_attachments', 0);
+});
+
+it('does not offer outros in the typed attachment selector', function () {
+    $user = User::factory()->admin()->create();
+    $station = Station::factory()->create(['latitude' => null, 'longitude' => null]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/station-detail', ['station' => $station])
+        ->assertSee('Outros Anexos')
+        ->assertDontSee('value="outros"');
+});
+
 it('rejects invalid attachment types', function () {
     $user = User::factory()->admin()->create();
     $station = Station::factory()->create();
