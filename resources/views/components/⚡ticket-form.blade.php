@@ -43,6 +43,12 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
             ->get();
     }
 
+    #[Computed]
+    public function queueTickets(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Ticket::queueTickets();
+    }
+
     public function selectStation(string $siteId): void
     {
         $this->site_id = $siteId;
@@ -151,22 +157,24 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
             </div>
         </div>
     @else
-        <div class="mb-6">
-            <flux:heading size="xl">Solicitar Ticket</flux:heading>
-            <flux:text class="mt-2">Preencha os dados abaixo para abrir um ticket na fila de avaliação.</flux:text>
-        </div>
+        <div class="grid gap-8 lg:grid-cols-[1fr_360px]">
+            <div>
+                <div class="mb-6">
+                    <flux:heading size="xl">Solicitar Ticket</flux:heading>
+                    <flux:text class="mt-2">Preencha os dados abaixo para abrir um ticket na fila de avaliação.</flux:text>
+                </div>
 
-        <div class="mb-6">
-            <flux:button
-                :href="route('tickets.status')"
-                variant="outline"
-                icon="magnifying-glass"
-                class="w-full !h-12 !text-base"
-                wire:navigate
-            >
-                {{ __('Acompanhar Ticket') }}
-            </flux:button>
-        </div>
+                <div class="mb-6">
+                    <flux:button
+                        :href="route('tickets.status')"
+                        variant="outline"
+                        icon="magnifying-glass"
+                        class="w-full !h-12 !text-base"
+                        wire:navigate
+                    >
+                        {{ __('Acompanhar Ticket') }}
+                    </flux:button>
+                </div>
 
         <form wire:submit="submit" id="ticket-form" x-ref="form" class="space-y-6 border-t border-zinc-200 pt-6 scroll-mt-24 dark:border-zinc-700">
             <flux:field>
@@ -261,5 +269,43 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
                 Abrir Ticket
             </flux:button>
         </form>
+            </div>
+
+            <aside class="lg:sticky lg:top-6">
+                <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                    <div class="flex items-center justify-between border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="queue-list" class="size-4 text-zinc-400" />
+                            <flux:heading size="sm">Fila de Avaliação</flux:heading>
+                        </div>
+                        <flux:badge color="zinc" size="sm">{{ $this->queueTickets->count() }}</flux:badge>
+                    </div>
+
+                    <div class="max-h-[70vh] overflow-y-auto">
+                        @if ($this->queueTickets->isEmpty())
+                            <div class="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center">
+                                <flux:icon name="check-circle" class="size-6 text-green-500" />
+                                <flux:text class="text-sm">A fila está vazia.</flux:text>
+                            </div>
+                        @else
+                            <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                @foreach ($this->queueTickets as $ticket)
+                                    <li class="flex items-center gap-3 px-4 py-3">
+                                        <span class="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">
+                                            {{ $ticket->queue_number }}
+                                        </span>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="truncate font-mono text-sm font-semibold">{{ $ticket->tracking_code }}</p>
+                                            <p class="truncate text-xs text-zinc-400">{{ $ticket->site_id }}</p>
+                                        </div>
+                                        <flux:badge :color="$ticket->statusColor()" size="sm">{{ $ticket->statusLabel() }}</flux:badge>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </div>
+            </aside>
+        </div>
     @endif
 </div>

@@ -106,6 +106,28 @@ class Ticket extends Model
             ->count() + 1;
     }
 
+    /**
+     * @return Collection<int, static>
+     */
+    public static function queueTickets(): Collection
+    {
+        $final = TicketStatusModel::finalName();
+
+        if ($final === null) {
+            return new Collection;
+        }
+
+        return static::query()
+            ->with('statusModel')
+            ->where('status', '!=', $final)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get()
+            ->each(function (Ticket $ticket) {
+                $ticket->setAttribute('queue_number', $ticket->queuePosition());
+            });
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Ticket $ticket) {

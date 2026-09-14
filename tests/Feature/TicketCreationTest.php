@@ -2,6 +2,7 @@
 
 use App\Models\Station;
 use App\Models\Ticket;
+use App\Models\TicketStatus;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Livewire;
 
@@ -165,4 +166,35 @@ it('sanitizes and normalizes the submitted values', function () {
         'technician_name' => 'João Silva',
         'report_description' => 'Teste com espaços.',
     ]);
+});
+
+it('shows the evaluation queue on the home page', function () {
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'resolvido', 'label' => 'Resolvido', 'sort_order' => 2]);
+
+    $queued = Ticket::factory()->create(['status' => 'aberto', 'site_id' => 'SITE-QUEUE1']);
+    Ticket::factory()->create(['status' => 'resolvido', 'site_id' => 'SITE-DONE1']);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('Fila de Avaliação')
+        ->assertSee($queued->tracking_code)
+        ->assertSee('SITE-QUEUE1')
+        ->assertDontSee('SITE-DONE1');
+});
+
+it('shows the queue position on the home page', function () {
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'resolvido', 'label' => 'Resolvido', 'sort_order' => 2]);
+
+    $first = Ticket::factory()->create(['status' => 'aberto', 'created_at' => now()->subHours(2)]);
+    $second = Ticket::factory()->create(['status' => 'aberto', 'created_at' => now()->subHours(1)]);
+
+    expect($first->queuePosition())->toBe(1);
+    expect($second->queuePosition())->toBe(2);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee($first->tracking_code)
+        ->assertSee($second->tracking_code);
 });

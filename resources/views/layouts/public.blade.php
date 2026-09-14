@@ -20,7 +20,7 @@
             @endauth
         </flux:header>
 
-        <flux:main class="mx-auto max-w-3xl bg-white dark:bg-zinc-800">
+        <flux:main class="mx-auto max-w-6xl bg-white dark:bg-zinc-800">
             {{ $slot }}
         </flux:main>
 
