@@ -270,5 +270,13 @@
     "Tem certeza que deseja excluir este status?": "Are you sure you want to delete this status?",
     "Alternar entre seções": "Toggle between sections",
     "Tipos de Relatório": "Report Types",
-    "Flag": "Flag"
+    "Flag": "Flag",
+    "Fila": "Queue",
+    "por": "by",
+    "Status anterior": "Previous status",
+    "Avançar status": "Advance status",
+    "Próximo:": "Next:",
+    "Status atual": "Current status",
+    "Este é o status final.": "This is the final status.",
+    "O status avança em sequência conforme a ordem definida em Relatórios.": "The status advances sequentially according to the order defined in Reports."
 }

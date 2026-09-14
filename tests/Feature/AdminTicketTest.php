@@ -100,6 +100,22 @@ it('paginates the ticket list', function () {
     expect($component->instance()->tickets->count())->toBe(15);
 });
 
+it('sorts tickets by a column', function () {
+    $user = User::factory()->admin()->create();
+    Ticket::factory()->create(['technician_name' => 'Ana']);
+    Ticket::factory()->create(['technician_name' => 'Bruno']);
+    Ticket::factory()->create(['technician_name' => 'Carlos']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('admin/ticket-list');
+    $component->call('sort', 'technician_name');
+    expect($component->instance()->tickets->first()->technician_name)->toBe('Ana');
+
+    $component->call('sort', 'technician_name');
+    expect($component->instance()->tickets->first()->technician_name)->toBe('Carlos');
+});
+
 it('renders the admin ticket detail page', function () {
     $user = User::factory()->admin()->create();
     $ticket = Ticket::factory()->create();

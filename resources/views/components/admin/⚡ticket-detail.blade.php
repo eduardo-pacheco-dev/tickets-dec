@@ -172,6 +172,12 @@ new class extends Component
         <flux:badge color="{{ $this->ticket->statusColor() }}">
             {{ $this->ticket->statusLabel() }}
         </flux:badge>
+        @if ($position = $this->ticket->queuePosition())
+            <flux:badge color="zinc" size="md">
+                <flux:icon name="queue-list" class="size-3.5" />
+                {{ __('Fila') }} #{{ $position }}
+            </flux:badge>
+        @endif
     </div>
 
     <div class="grid gap-6 lg:grid-cols-3">

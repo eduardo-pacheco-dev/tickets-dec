@@ -187,3 +187,40 @@ it('falls back to the default status label when not in the database', function (
     expect($ticket->statusLabel())->toBe('Resolvido');
     expect($ticket->statusColor())->toBe('green');
 });
+
+it('assigns queue positions based on creation order among non-finalized tickets', function () {
+    TicketStatus::factory()->create(['name' => 'aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'sort_order' => 2]);
+    TicketStatus::factory()->create(['name' => 'resolvido', 'sort_order' => 3]);
+
+    $first = Ticket::factory()->create(['status' => 'aberto', 'created_at' => now()->subHours(3)]);
+    $second = Ticket::factory()->create(['status' => 'em_andamento', 'created_at' => now()->subHours(2)]);
+    $third = Ticket::factory()->create(['status' => 'aberto', 'created_at' => now()->subHours(1)]);
+    $finalized = Ticket::factory()->create(['status' => 'resolvido', 'created_at' => now()]);
+
+    expect($first->queuePosition())->toBe(1);
+    expect($second->queuePosition())->toBe(2);
+    expect($third->queuePosition())->toBe(3);
+    expect($finalized->queuePosition())->toBeNull();
+    expect($finalized->isFinalized())->toBeTrue();
+});
+
+it('shifts queue positions down when a ticket is finalized', function () {
+    TicketStatus::factory()->create(['name' => 'aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'resolvido', 'sort_order' => 2]);
+
+    $first = Ticket::factory()->create(['status' => 'aberto', 'created_at' => now()->subHours(2)]);
+    $second = Ticket::factory()->create(['status' => 'aberto', 'created_at' => now()->subHours(1)]);
+
+    expect($second->queuePosition())->toBe(2);
+
+    $first->update(['status' => 'resolvido']);
+
+    expect($second->refresh()->queuePosition())->toBe(1);
+});
+
+it('returns null queue position when no final status is defined', function () {
+    $ticket = Ticket::factory()->create(['status' => 'aberto']);
+
+    expect($ticket->queuePosition())->toBeNull();
+});

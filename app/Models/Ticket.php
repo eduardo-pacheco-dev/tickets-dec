@@ -70,6 +70,31 @@ class Ticket extends Model
             ?? 'zinc';
     }
 
+    public function isFinalized(): bool
+    {
+        return $this->status === TicketStatusModel::finalName();
+    }
+
+    public function queuePosition(): ?int
+    {
+        $final = TicketStatusModel::finalName();
+
+        if ($final === null || $this->isFinalized()) {
+            return null;
+        }
+
+        return Ticket::query()
+            ->where('status', '!=', $final)
+            ->where(function ($query) {
+                $query->where('created_at', '<', $this->created_at)
+                    ->orWhere(function ($query) {
+                        $query->where('created_at', $this->created_at)
+                            ->where('id', '<', $this->id);
+                    });
+            })
+            ->count() + 1;
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Ticket $ticket) {

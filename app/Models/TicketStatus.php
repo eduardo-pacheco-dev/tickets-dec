@@ -48,6 +48,22 @@ class TicketStatus extends Model
         return $query->where('is_active', true);
     }
 
+    public static function finalName(): ?string
+    {
+        return static::query()->active()->orderByDesc('sort_order')->value('name');
+    }
+
+    public static function queueCount(): int
+    {
+        $final = static::finalName();
+
+        if ($final === null) {
+            return 0;
+        }
+
+        return Ticket::query()->where('status', '!=', $final)->count();
+    }
+
     /**
      * @return HasMany<Ticket, $this>
      */

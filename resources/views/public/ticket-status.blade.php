@@ -94,9 +94,17 @@
                                 <flux:heading size="lg" class="font-mono">{{ $ticket->tracking_code }}</flux:heading>
                             </div>
                         </div>
-                        <flux:badge color="{{ $ticket->statusColor() }}" size="lg">
-                            {{ $ticket->statusLabel() }}
-                        </flux:badge>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if ($position = $ticket->queuePosition())
+                                <flux:badge color="zinc" size="lg">
+                                    <flux:icon name="queue-list" class="size-3.5" />
+                                    {{ __('Fila') }} #{{ $position }}
+                                </flux:badge>
+                            @endif
+                            <flux:badge color="{{ $ticket->statusColor() }}" size="lg">
+                                {{ $ticket->statusLabel() }}
+                            </flux:badge>
+                        </div>
                     </div>
 
                     <div class="p-5 sm:p-6">

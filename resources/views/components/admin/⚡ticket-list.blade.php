@@ -18,6 +18,12 @@ new class extends Component
     #[Url]
     public ?string $status = null;
 
+    #[Url]
+    public string $sortBy = 'created_at';
+
+    #[Url]
+    public string $sortDirection = 'desc';
+
     #[Computed]
     public function counts(): array
     {
@@ -48,6 +54,16 @@ new class extends Component
         $this->resetPage();
     }
 
+    public function sort(string $column): void
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+    }
+
     #[Computed]
     public function tickets(): LengthAwarePaginator
     {
@@ -63,7 +79,8 @@ new class extends Component
             ->when($this->status, function ($query, $status) {
                 $query->where('status', $status);
             })
-            ->latest()
+            ->orderBy($this->sortBy, $this->sortDirection)
+            ->orderBy('id', 'desc')
             ->paginate(15);
     }
 };
@@ -149,13 +166,44 @@ new class extends Component
         <flux:card class="overflow-hidden">
             <flux:table bleed :paginate="$this->tickets">
                 <flux:table.columns>
-                    <flux:table.column scope="col">{{ __('Código') }}</flux:table.column>
-                    <flux:table.column scope="col">{{ __('Site') }}</flux:table.column>
-                    <flux:table.column scope="col">{{ __('Técnico') }}</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'tracking_code'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('tracking_code')"
+                    >{{ __('Código') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Fila') }}</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'site_id'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('site_id')"
+                    >{{ __('Site') }}</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'technician_name'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('technician_name')"
+                    >{{ __('Técnico') }}</flux:table.column>
                     <flux:table.column scope="col">{{ __('Relatório') }}</flux:table.column>
                     <flux:table.column scope="col">{{ __('Check-in') }}</flux:table.column>
-                    <flux:table.column scope="col">{{ __('Status') }}</flux:table.column>
-                    <flux:table.column scope="col">{{ __('Aberto em') }}</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'status'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('status')"
+                    >{{ __('Status') }}</flux:table.column>
+                    <flux:table.column
+                        scope="col"
+                        sortable
+                        :sorted="$this->sortBy === 'created_at'"
+                        :direction="$this->sortDirection"
+                        wire:click="sort('created_at')"
+                    >{{ __('Aberto em') }}</flux:table.column>
                     <flux:table.column scope="col" class="w-px"></flux:table.column>
                 </flux:table.columns>
 
@@ -171,6 +219,13 @@ new class extends Component
                                     wire:navigate
                                     class="font-mono text-sm font-semibold underline-offset-2 hover:underline"
                                 >{{ $ticket->tracking_code }}</a>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @if ($position = $ticket->queuePosition())
+                                    <span class="inline-flex size-7 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">{{ $position }}</span>
+                                @else
+                                    <flux:icon name="check" class="size-4 text-zinc-300 dark:text-zinc-600" />
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell>{{ $ticket->site_id }}</flux:table.cell>
                             <flux:table.cell>{{ $ticket->technician_name }}</flux:table.cell>
@@ -215,7 +270,7 @@ new class extends Component
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="8" align="center">
+                            <flux:table.cell colspan="9" align="center">
                                 <div class="py-12">
                                     <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                                         <flux:icon name="magnifying-glass" class="size-5" />
