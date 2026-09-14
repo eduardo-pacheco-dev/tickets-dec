@@ -176,6 +176,7 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
                         wire:model.live="site_id"
                         placeholder="Ex: SITE-0012"
                         autocomplete="off"
+                        icon:trailing="chevron-down"
                         x-ref="input"
                         @input="open = true"
                         @focus="open = $wire.stationSuggestions.length > 0"
@@ -191,7 +192,6 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
                         "
                         @click.outside="open = false"
                     />
-                    <flux:icon name="chevron-down" class="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
 
                     @if ($this->stationSuggestions->isNotEmpty())
                         <div
