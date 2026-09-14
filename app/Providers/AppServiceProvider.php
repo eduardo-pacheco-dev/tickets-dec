@@ -65,6 +65,13 @@ class AppServiceProvider extends ServiceProvider
         if ($appName !== null) {
             config(['app.name' => $appName]);
         }
+
+        $timezone = Setting::get('app.timezone');
+
+        if ($timezone !== null && in_array($timezone, timezone_identifiers_list(), true)) {
+            config(['app.timezone' => $timezone]);
+            date_default_timezone_set($timezone);
+        }
     }
 
     private function settingsTableExists(): bool

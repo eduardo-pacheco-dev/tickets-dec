@@ -93,6 +93,8 @@ new class extends Component
             'status' => $newStatus,
         ]);
 
+        $this->recordStatusHistory($oldStatus, $newStatus);
+
         $this->notifyStaff(new TicketStatusUpdatedNotification(
             $this->ticket,
             $oldStatus,
@@ -118,6 +120,8 @@ new class extends Component
             'status' => $newStatus,
         ]);
 
+        $this->recordStatusHistory($oldStatus, $newStatus);
+
         $this->notifyStaff(new TicketStatusUpdatedNotification(
             $this->ticket,
             $oldStatus,
@@ -126,6 +130,15 @@ new class extends Component
         ));
 
         $this->dispatch('status-updated');
+    }
+
+    private function recordStatusHistory(string $oldStatus, string $newStatus): void
+    {
+        $this->ticket->statusHistories()->create([
+            'from_status' => $oldStatus,
+            'to_status' => $newStatus,
+            'changed_by' => auth()->id(),
+        ]);
     }
 
     private function ensureCanManageTickets(): void
@@ -222,52 +235,54 @@ new class extends Component
                 <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
                     <flux:heading size="sm" class="mb-4">{{ __('Alterar Status') }}</flux:heading>
 
-                    <div class="flex items-center justify-between gap-2">
-                        <flux:button
-                            variant="subtle"
-                            icon="arrow-left"
-                            wire:click="regressStatus"
-                            :disabled="! $this->previousStatus"
-                            :aria-label="__('Status anterior')"
-                        >
-                            {{ __('Voltar') }}
-                        </flux:button>
+                    <div class="flex items-center justify-between gap-3 rounded-lg border border-zinc-100 bg-zinc-50/60 px-4 py-3 dark:border-zinc-700/60 dark:bg-white/[3%]">
+                        <flux:text class="text-xs font-medium uppercase text-zinc-400">{{ __('Status atual') }}</flux:text>
+                        <flux:badge color="{{ $this->ticket->statusColor() }}" size="md">
+                            {{ $this->ticket->statusLabel() }}
+                        </flux:badge>
+                    </div>
 
-                        <div class="flex flex-col items-center gap-1">
-                            <flux:badge color="{{ $this->ticket->statusColor() }}" size="md">
-                                {{ $this->ticket->statusLabel() }}
-                            </flux:badge>
-                            @if ($this->nextStatus)
-                                <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
-                                    {{ __('Próximo:') }} {{ $this->nextStatus->label }}
-                                </flux:text>
-                            @else
-                                <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
-                                    {{ __('Status final') }}
-                                </flux:text>
-                            @endif
-                        </div>
+                    <div class="mt-2 flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500">
+                        <flux:icon :name="$this->nextStatus ? 'arrow-trending-up' : 'flag'" class="size-3.5" />
+                        @if ($this->nextStatus)
+                            {{ __('Próximo:') }} <span class="font-medium text-zinc-600 dark:text-zinc-300">{{ $this->nextStatus->label }}</span>
+                        @else
+                            {{ __('Este é o status final.') }}
+                        @endif
+                    </div>
 
+                    <div class="mt-4 grid gap-2">
                         <flux:button
                             variant="primary"
                             icon-trailing="arrow-right"
                             wire:click="advanceStatus"
                             :disabled="! $this->nextStatus"
                             :aria-label="__('Avançar status')"
+                            class="w-full"
                         >
                             {{ __('Avançar') }}
+                            @if ($this->nextStatus)
+                                <span class="opacity-70">· {{ $this->nextStatus->label }}</span>
+                            @endif
+                        </flux:button>
+
+                        <flux:button
+                            variant="subtle"
+                            icon="arrow-left"
+                            wire:click="regressStatus"
+                            :disabled="! $this->previousStatus"
+                            :aria-label="__('Status anterior')"
+                            class="w-full"
+                        >
+                            {{ __('Voltar') }}
                         </flux:button>
                     </div>
-
-                    <flux:text class="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
-                        {{ __('O status avança em sequência conforme a ordem definida em Relatórios.') }}
-                    </flux:text>
                 </div>
             @endif
 
             <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
                 <flux:heading size="sm" class="mb-4">{{ __('Timeline') }}</flux:heading>
-                <div class="space-y-3">
+                <div class="space-y-4">
                     <div class="flex items-start gap-3">
                         <div class="mt-1 size-2 shrink-0 rounded-full bg-green-500"></div>
                         <div>
@@ -275,15 +290,23 @@ new class extends Component
                             <flux:text class="text-xs text-gray-500">{{ $this->ticket->created_at->format('d/m/Y H:i') }}</flux:text>
                         </div>
                     </div>
-                    @if ($this->ticket->updated_at && $this->ticket->updated_at != $this->ticket->created_at)
-                        <div class="flex items-start gap-3">
+
+                    @foreach ($this->ticket->statusHistories as $history)
+                        <div wire:key="history-{{ $history->id }}" class="flex items-start gap-3">
                             <div class="mt-1 size-2 shrink-0 rounded-full bg-blue-500"></div>
                             <div>
-                                <flux:text class="text-sm font-medium">{{ __('Última atualização') }}</flux:text>
-                                <flux:text class="text-xs text-gray-500">{{ $this->ticket->updated_at->format('d/m/Y H:i') }}</flux:text>
+                                <flux:text class="text-sm font-medium">
+                                    {{ $history->fromLabel() }} <flux:icon name="arrow-right" class="mx-1 inline size-3 text-zinc-400" /> {{ $history->toLabel() }}
+                                </flux:text>
+                                <flux:text class="text-xs text-gray-500">
+                                    {{ $history->created_at->format('d/m/Y H:i') }}
+                                    @if ($history->changer)
+                                        · {{ __('por') }} {{ $history->changer->name }}
+                                    @endif
+                                </flux:text>
                             </div>
                         </div>
-                    @endif
+                    @endforeach
                 </div>
             </div>
         </div>

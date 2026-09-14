@@ -195,6 +195,13 @@ it('advances the ticket status for admin users', function () {
         'id' => $ticket->id,
         'status' => 'em_andamento',
     ]);
+
+    $this->assertDatabaseHas('ticket_status_histories', [
+        'ticket_id' => $ticket->id,
+        'from_status' => 'aberto',
+        'to_status' => 'em_andamento',
+        'changed_by' => $user->id,
+    ]);
 });
 
 it('does not advance the ticket status beyond the last one', function () {
@@ -229,6 +236,13 @@ it('regresses the ticket status for admin users', function () {
     $this->assertDatabaseHas('tickets', [
         'id' => $ticket->id,
         'status' => 'aberto',
+    ]);
+
+    $this->assertDatabaseHas('ticket_status_histories', [
+        'ticket_id' => $ticket->id,
+        'from_status' => 'em_andamento',
+        'to_status' => 'aberto',
+        'changed_by' => $user->id,
     ]);
 });
 

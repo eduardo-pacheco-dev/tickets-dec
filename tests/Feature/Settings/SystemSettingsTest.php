@@ -28,10 +28,12 @@ test('system name can be updated', function () {
 
     Livewire::test(System::class)
         ->set('appName', 'Tickets Dec')
+        ->set('timezone', 'America/Sao_Paulo')
         ->call('save')
         ->assertHasNoErrors();
 
     expect(Setting::get('app.name'))->toBe('Tickets Dec');
+    expect(Setting::get('app.timezone'))->toBe('America/Sao_Paulo');
 });
 
 test('system name is required', function () {
@@ -41,6 +43,7 @@ test('system name is required', function () {
 
     Livewire::test(System::class)
         ->set('appName', '')
+        ->set('timezone', 'America/Sao_Paulo')
         ->call('save')
         ->assertHasErrors(['appName']);
 
@@ -50,9 +53,39 @@ test('system name is required', function () {
 test('system name is loaded from settings on mount', function () {
     $user = User::factory()->admin()->create();
     Setting::set('app.name', 'Tickets Dec');
+    Setting::set('app.timezone', 'America/Sao_Paulo');
 
     $this->actingAs($user);
 
     Livewire::test(System::class)
-        ->assertSet('appName', 'Tickets Dec');
+        ->assertSet('appName', 'Tickets Dec')
+        ->assertSet('timezone', 'America/Sao_Paulo');
+});
+
+test('timezone can be updated', function () {
+    $user = User::factory()->admin()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(System::class)
+        ->set('appName', 'Tickets Dec')
+        ->set('timezone', 'America/Manaus')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Setting::get('app.timezone'))->toBe('America/Manaus');
+});
+
+test('invalid timezone is rejected', function () {
+    $user = User::factory()->admin()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(System::class)
+        ->set('appName', 'Tickets Dec')
+        ->set('timezone', 'Invalid/Zone')
+        ->call('save')
+        ->assertHasErrors(['timezone']);
+
+    expect(Setting::get('app.timezone'))->toBeNull();
 });
