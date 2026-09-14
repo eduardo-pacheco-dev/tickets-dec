@@ -84,3 +84,21 @@ it('sets a default status of aberto when no status is provided', function () {
     $ticket = Ticket::first();
     expect($ticket->status->value)->toBe('aberto');
 });
+
+it('shows copy and tracking buttons after creating a ticket', function () {
+    $component = Livewire::test('ticket-form')
+        ->set('site_id', 'SITE-001')
+        ->set('technician_name', 'João Silva')
+        ->set('report_description', 'Teste de relatório.')
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSee('Ticket Criado com Sucesso!')
+        ->assertSee('Copiado!')
+        ->assertSee('Acompanhar Ticket')
+        ->assertSee('Abrir Novo Ticket');
+
+    $code = $component->instance()->tracking_code;
+
+    $component->assertSee(route('tickets.status', ['q' => $code]))
+        ->assertSee('writeText');
+});

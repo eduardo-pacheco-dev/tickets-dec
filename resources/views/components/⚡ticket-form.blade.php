@@ -77,16 +77,50 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
                 <div>
                     <flux:heading size="lg">Ticket Criado com Sucesso!</flux:heading>
                     <flux:text class="mt-4 text-sm">Seu código de acompanhamento é:</flux:text>
-                    <div class="mt-3 inline-block rounded-lg bg-white px-6 py-3 font-mono text-2xl font-bold tracking-wider text-gray-900 shadow dark:bg-zinc-800 dark:text-white">
-                        {{ $this->tracking_code }}
+                    <div class="mt-3 flex flex-wrap items-center justify-center gap-4">
+                        <div
+                            x-data="{ copied: false }"
+                            x-on:click="
+                                navigator.clipboard.writeText('{{ $this->tracking_code }}');
+                                copied = true;
+                                setTimeout(() => copied = false, 2000);
+                            "
+                            class="group relative inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-6 py-3 font-mono text-2xl font-bold tracking-wider text-gray-900 shadow ring-1 ring-zinc-200 transition hover:bg-zinc-50 dark:bg-zinc-800 dark:text-white dark:ring-zinc-700 dark:hover:bg-zinc-700"
+                        >
+                            {{ $this->tracking_code }}
+
+                            <span class="text-zinc-400 group-hover:text-zinc-600 dark:text-zinc-500 dark:group-hover:text-zinc-300" :class="copied ? 'text-green-600! dark:text-green-400!' : ''">
+                                <span x-show="!copied">
+                                    <flux:icon name="clipboard" class="size-5" />
+                                </span>
+                                <span x-show="copied" x-cloak>
+                                    <flux:icon name="check" class="size-5" />
+                                </span>
+                            </span>
+
+                            <span
+                                x-show="copied"
+                                x-cloak
+                                class="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white shadow dark:bg-white dark:text-zinc-900"
+                            >Copiado!</span>
+                        </div>
                     </div>
                 </div>
-                <flux:text class="block text-sm text-gray-500">
-                    Guarde este código para acompanhar o status do seu ticket.
-                </flux:text>
-                <flux:button wire:click="$wire.set('tracking_code', null)" variant="primary" class="mt-6">
-                    Abrir Novo Ticket
-                </flux:button>
+
+                <div class="flex flex-col items-center gap-2">
+                    <flux:button
+                        variant="primary"
+                        icon="magnifying-glass"
+                        :href="route('tickets.status', ['q' => $this->tracking_code])"
+                        wire:navigate
+                    >
+                        Acompanhar Ticket
+                    </flux:button>
+
+                    <flux:button wire:click="$wire.set('tracking_code', null)" variant="ghost" size="sm">
+                        Abrir Novo Ticket
+                    </flux:button>
+                </div>
             </div>
         </div>
     @else
