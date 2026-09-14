@@ -79,8 +79,8 @@ new class extends Component
 <div class="space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <flux:heading size="lg">Tickets</flux:heading>
-            <flux:text class="mt-1">Acompanhe os chamados registrados pelos técnicos e gerencie o atendimento.</flux:text>
+            <flux:heading size="lg">{{ __('Tickets') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Acompanhe os chamados registrados pelos técnicos e gerencie o atendimento.') }}</flux:text>
         </div>
 
         @if ($this->status !== null || $this->search !== '')
@@ -90,7 +90,7 @@ new class extends Component
                     size="sm"
                     wire:click="$wire.set('search', ''); $wire.set('status', null)"
                 >
-                    Limpar filtros
+                    {{ __('Limpar filtros') }}
                 </flux:button>
             </div>
         @endif
@@ -99,7 +99,7 @@ new class extends Component
     <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div
             role="group"
-            aria-label="Filtrar por status"
+            aria-label="{{ __('Filtrar por status') }}"
             class="flex flex-wrap items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-800/70"
         >
             @php
@@ -115,7 +115,7 @@ new class extends Component
                 aria-pressed="{{ $this->status === null ? 'true' : 'false' }}"
                 class="{{ $filterButtonClasses($this->status === null) }}"
             >
-                Todos
+                {{ __('Todos') }}
                 <span class="text-xs font-semibold tracking-tight">{{ $this->counts['total'] }}</span>
             </button>
 
@@ -139,7 +139,7 @@ new class extends Component
                 wire:model.live="search"
                 clearable
                 icon="magnifying-glass"
-                placeholder="Buscar por código, site ou técnico..."
+                placeholder="{{ __('Buscar por código, site ou técnico...') }}"
             />
         </div>
     </div>
@@ -149,20 +149,20 @@ new class extends Component
             <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                 <flux:icon name="ticket" class="size-6" />
             </div>
-            <flux:heading size="lg" class="mt-4">Nenhum ticket ainda</flux:heading>
-            <flux:text class="mt-1">Os chamados abertos pelos técnicos aparecerão aqui assim que forem registrados.</flux:text>
+            <flux:heading size="lg" class="mt-4">{{ __('Nenhum ticket ainda') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Os chamados abertos pelos técnicos aparecerão aqui assim que forem registrados.') }}</flux:text>
         </flux:card>
     @else
         <flux:card class="overflow-hidden">
             <flux:table bleed :paginate="$this->tickets">
                 <flux:table.columns>
-                    <flux:table.column scope="col">Código</flux:table.column>
-                    <flux:table.column scope="col">Site</flux:table.column>
-                    <flux:table.column scope="col">Técnico</flux:table.column>
-                    <flux:table.column scope="col">Relatório</flux:table.column>
-                    <flux:table.column scope="col">Check-in</flux:table.column>
-                    <flux:table.column scope="col">Status</flux:table.column>
-                    <flux:table.column scope="col">Aberto em</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Código') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Site') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Técnico') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Relatório') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Check-in') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Status') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Aberto em') }}</flux:table.column>
                     <flux:table.column scope="col" class="w-px"></flux:table.column>
                 </flux:table.columns>
 
@@ -194,9 +194,9 @@ new class extends Component
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if ($ticket->checked_in)
-                                    <flux:badge color="emerald" size="sm">Feito</flux:badge>
+                                    <flux:badge color="emerald" size="sm">{{ __('Feito') }}</flux:badge>
                                 @else
-                                    <flux:badge size="sm">Pendente</flux:badge>
+                                    <flux:badge size="sm">{{ __('Pendente') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
@@ -216,7 +216,7 @@ new class extends Component
                                     icon="arrow-right"
                                     :href="route('admin.tickets.show', $ticket)"
                                     wire:navigate
-                                    :aria-label="'Ver ticket ' . $ticket->tracking_code"
+                                    :aria-label="__('Ver ticket ') . $ticket->tracking_code"
                                 />
                             </flux:table.cell>
                         </flux:table.row>
@@ -227,15 +227,15 @@ new class extends Component
                                     <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                                         <flux:icon name="magnifying-glass" class="size-5" />
                                     </div>
-                                    <flux:heading size="sm" class="mt-3">Nenhum ticket encontrado</flux:heading>
-                                    <flux:text class="mt-1">Nenhum registro corresponde à busca ou aos filtros aplicados.</flux:text>
+                                    <flux:heading size="sm" class="mt-3">{{ __('Nenhum ticket encontrado') }}</flux:heading>
+                                    <flux:text class="mt-1">{{ __('Nenhum registro corresponde à busca ou aos filtros aplicados.') }}</flux:text>
                                     <div class="mt-4">
                                         <flux:button
                                             variant="subtle"
                                             size="sm"
                                             wire:click="$wire.set('search', ''); $wire.set('status', null)"
                                         >
-                                            Limpar filtros
+                                            {{ __('Limpar filtros') }}
                                         </flux:button>
                                     </div>
                                 </div>

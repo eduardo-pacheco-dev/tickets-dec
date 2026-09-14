@@ -316,13 +316,13 @@ new class extends Component
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
             <flux:button variant="ghost" icon="arrow-left" href="{{ route('admin.stations.index') }}" wire:navigate>
-                Voltar
+                {{ __('Voltar') }}
             </flux:button>
             <flux:heading size="lg">{{ $this->station->site_id }}</flux:heading>
             @if ($this->station->is_active)
-                <flux:badge color="green">Ativa</flux:badge>
+                <flux:badge color="green">{{ __('Ativa') }}</flux:badge>
             @else
-                <flux:badge color="zinc">Inativa</flux:badge>
+                <flux:badge color="zinc">{{ __('Inativa') }}</flux:badge>
             @endif
             @if ($this->station->status)
                 <flux:badge color="blue">{{ $this->station->status }}</flux:badge>
@@ -335,16 +335,16 @@ new class extends Component
                 :icon="$this->station->is_active ? 'eye-slash' : 'eye'"
                 wire:click="toggleActive"
             >
-                {{ $this->station->is_active ? 'Desativar' : 'Ativar' }}
+                {{ $this->station->is_active ? __('Desativar') : __('Ativar') }}
             </flux:button>
 
             <flux:button
                 variant="danger"
                 icon="trash"
                 wire:click="delete"
-                wire:confirm="Tem certeza que deseja excluir esta estação?"
+                wire:confirm="{{ __('Tem certeza que deseja excluir esta estação?') }}"
             >
-                Excluir
+                {{ __('Excluir') }}
             </flux:button>
         </div>
     </div>
@@ -359,9 +359,9 @@ new class extends Component
                     <div class="flex flex-wrap items-center gap-2">
                         <flux:heading size="xl" class="font-mono">{{ $this->station->site_id }}</flux:heading>
                         @if ($this->station->is_active)
-                            <flux:badge color="green" size="sm">Ativa</flux:badge>
+                            <flux:badge color="green" size="sm">{{ __('Ativa') }}</flux:badge>
                         @else
-                            <flux:badge color="zinc" size="sm">Inativa</flux:badge>
+                            <flux:badge color="zinc" size="sm">{{ __('Inativa') }}</flux:badge>
                         @endif
                     </div>
                     <flux:text class="mt-1">
@@ -392,15 +392,15 @@ new class extends Component
 
             <div class="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                 <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
-                    <flux:text class="text-xs font-medium uppercase text-zinc-400">External ID</flux:text>
+                    <flux:text class="text-xs font-medium uppercase text-zinc-400">{{ __('External ID') }}</flux:text>
                     <flux:text class="mt-1 font-mono text-sm font-semibold">{{ $this->value($this->station->external_id) }}</flux:text>
                 </div>
                 <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
-                    <flux:text class="text-xs font-medium uppercase text-zinc-400">Regional</flux:text>
+                    <flux:text class="text-xs font-medium uppercase text-zinc-400">{{ __('Regional') }}</flux:text>
                     <flux:text class="mt-1 text-sm font-semibold">{{ $this->value($this->station->regional) }}</flux:text>
                 </div>
                 <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
-                    <flux:text class="text-xs font-medium uppercase text-zinc-400">Cadastrada em</flux:text>
+                    <flux:text class="text-xs font-medium uppercase text-zinc-400">{{ __('Cadastrada em') }}</flux:text>
                     <flux:text class="mt-1 text-sm font-semibold">{{ $this->station->created_at->format('d/m/Y') }}</flux:text>
                 </div>
             </div>
@@ -415,32 +415,32 @@ new class extends Component
                         <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                             <flux:icon name="identification" class="size-4" />
                         </div>
-                        <flux:heading size="sm">Identificação</flux:heading>
+                        <flux:heading size="sm">{{ __('Identificação') }}</flux:heading>
                     </div>
 
                     <div class="mt-4 grid gap-4 sm:grid-cols-2">
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Site ID</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Site ID') }}</flux:text>
                             <flux:text class="mt-1 font-mono font-medium">{{ $this->station->site_id }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Endereço ID</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Endereço ID') }}</flux:text>
                             <flux:text class="mt-1 font-mono font-medium">{{ $this->value($this->station->address_id) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Tipo de Elemento</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Tipo de Elemento') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->station->element_type }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Tecnologia</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Tecnologia') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->station->technology }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Classificação</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Classificação') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->classification) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Status</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Status') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->status) }}</flux:text>
                         </div>
                     </div>
@@ -451,36 +451,36 @@ new class extends Component
                         <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                             <flux:icon name="building-office" class="size-4" />
                         </div>
-                        <flux:heading size="sm">Infraestrutura</flux:heading>
+                        <flux:heading size="sm">{{ __('Infraestrutura') }}</flux:heading>
                     </div>
 
                     <div class="mt-4 grid gap-4 sm:grid-cols-2">
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Detentor da Área</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Detentor da Área') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->area_holder) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Tipo de Contrato Infra</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Tipo de Contrato Infra') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->infra_contract_type) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Detentor de Infra</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Detentor de Infra') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->infra_holder) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Tipo de Infra</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Tipo de Infra') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->infra_type) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Tipo de EV</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Tipo de EV') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->ev_type) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Fornecedor de EV</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Fornecedor de EV') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->ev_provider) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Tipo da Torre</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Tipo da Torre') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->tower_type) }}</flux:text>
                         </div>
                     </div>
@@ -491,30 +491,30 @@ new class extends Component
                         <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                             <flux:icon name="map-pin" class="size-4" />
                         </div>
-                        <flux:heading size="sm">Endereço</flux:heading>
+                        <flux:heading size="sm">{{ __('Endereço') }}</flux:heading>
                     </div>
 
                     <div class="mt-4 grid gap-4 sm:grid-cols-2">
                         <div class="sm:col-span-2">
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Logradouro</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Logradouro') }}</flux:text>
                             <flux:text class="mt-1 font-medium">
                                 {{ trim(implode(' ', array_filter([$this->station->street_type, $this->station->street, $this->station->number, $this->station->complement]))) ?: '—' }}
                             </flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Bairro</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Bairro') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->neighborhood) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Município / UF</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Município / UF') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->city) }}/{{ $this->value($this->station->state) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">CEP</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('CEP') }}</flux:text>
                             <flux:text class="mt-1 font-mono font-medium">{{ $this->value($this->station->cep) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Regional</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Regional') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->regional) }}</flux:text>
                         </div>
                     </div>
@@ -525,28 +525,28 @@ new class extends Component
                         <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                             <flux:icon name="chart-bar" class="size-4" />
                         </div>
-                        <flux:heading size="sm">Coordenadas e Dimensionamento</flux:heading>
+                        <flux:heading size="sm">{{ __('Coordenadas e Dimensionamento') }}</flux:heading>
                     </div>
 
                     <div class="mt-4 grid gap-4 sm:grid-cols-2">
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Latitude</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Latitude') }}</flux:text>
                             <flux:text class="mt-1 font-mono font-medium">{{ $this->value($this->station->latitude) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Longitude</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Longitude') }}</flux:text>
                             <flux:text class="mt-1 font-mono font-medium">{{ $this->value($this->station->longitude) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">AEV Nominal</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('AEV Nominal') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->aev_nominal) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Área de Solo</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Área de Solo') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->land_area) }}</flux:text>
                         </div>
                         <div>
-                            <flux:text class="text-xs font-medium uppercase text-gray-500">Altura da Estrutura</flux:text>
+                            <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Altura da Estrutura') }}</flux:text>
                             <flux:text class="mt-1 font-medium">{{ $this->value($this->station->structure_height) }}</flux:text>
                         </div>
                     </div>
@@ -559,7 +559,7 @@ new class extends Component
                         <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                             <flux:icon name="map" class="size-4" />
                         </div>
-                        <flux:heading size="sm">Localização no Mapa</flux:heading>
+                        <flux:heading size="sm">{{ __('Localização no Mapa') }}</flux:heading>
                     </div>
 
                     @if ($this->hasCoordinates())
@@ -571,7 +571,7 @@ new class extends Component
                                 :href="'https://www.google.com/maps?q=' . (float) $this->station->latitude . ',' . (float) $this->station->longitude"
                                 target="_blank"
                             >
-                                Abrir no Google Maps
+                                {{ __('Abrir no Google Maps') }}
                             </flux:button>
 
                             <flux:button
@@ -581,7 +581,7 @@ new class extends Component
                                 :href="'https://www.openstreetmap.org/?mlat=' . (float) $this->station->latitude . '&mlon=' . (float) $this->station->longitude . '#map=17/' . (float) $this->station->latitude . '/' . (float) $this->station->longitude"
                                 target="_blank"
                             >
-                                Abrir no OpenStreetMap
+                                {{ __('Abrir no OpenStreetMap') }}
                             </flux:button>
                         </div>
                     @endif
@@ -591,7 +591,7 @@ new class extends Component
                     <div class="mt-4 overflow-hidden rounded-xl ring-1 ring-zinc-200 dark:ring-zinc-700">
                         <iframe
                             src="{{ $this->mapEmbedUrl() }}"
-                            title="Mapa da estação {{ $this->station->site_id }}"
+                            title="{{ __('Mapa da estação ') }}{{ $this->station->site_id }}"
                             class="h-[420px] w-full border-0"
                             loading="lazy"
                             referrerpolicy="no-referrer-when-downgrade"
@@ -600,7 +600,7 @@ new class extends Component
                 @else
                     <div class="mt-4 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
                         <flux:icon name="map-pin" class="size-6 text-zinc-400 dark:text-zinc-500" />
-                        <flux:text class="text-sm">Esta estação não possui coordenadas cadastradas.</flux:text>
+                        <flux:text class="text-sm">{{ __('Esta estação não possui coordenadas cadastradas.') }}</flux:text>
                     </div>
                 @endif
             </div>
@@ -611,7 +611,7 @@ new class extends Component
                         <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                             <flux:icon name="document-text" class="size-4" />
                         </div>
-                        <flux:heading size="sm">Observação</flux:heading>
+                        <flux:heading size="sm">{{ __('Observação') }}</flux:heading>
                     </div>
                     <flux:text class="mt-3">{{ $this->value($this->station->observation) }}</flux:text>
                 </div>
@@ -621,7 +621,7 @@ new class extends Component
                         <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                             <flux:icon name="pencil-square" class="size-4" />
                         </div>
-                        <flux:heading size="sm">Justificativa</flux:heading>
+                        <flux:heading size="sm">{{ __('Justificativa') }}</flux:heading>
                     </div>
                     <flux:text class="mt-3">{{ $this->value($this->station->justification) }}</flux:text>
                 </div>
@@ -634,12 +634,12 @@ new class extends Component
                     <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                         <flux:icon name="chat-bubble-left-ellipsis" class="size-4" />
                     </div>
-                    <flux:heading size="sm">Comentários</flux:heading>
+                    <flux:heading size="sm">{{ __('Comentários') }}</flux:heading>
                 </div>
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <flux:text class="mt-1 text-sm">Anotações e discussões sobre esta estação.</flux:text>
+                    <flux:text class="mt-1 text-sm">{{ __('Anotações e discussões sobre esta estação.') }}</flux:text>
                     <flux:button wire:click="openCommentModal" variant="primary" size="sm" icon="chat-bubble-left-ellipsis">
-                        Comentar
+                        {{ __('Comentar') }}
                     </flux:button>
                 </div>
 
@@ -662,7 +662,7 @@ new class extends Component
                                                 icon-only
                                                 icon="pencil"
                                                 wire:click="startEditingComment({{ $comment->id }})"
-                                                :aria-label="'Editar comentário'"
+                                                :aria-label="__('Editar comentário')"
                                             />
                                             <flux:button
                                                 variant="ghost"
@@ -670,8 +670,8 @@ new class extends Component
                                                 icon-only
                                                 icon="trash"
                                                 wire:click="deleteComment({{ $comment->id }})"
-                                                wire:confirm="Tem certeza que deseja excluir este comentário?"
-                                                :aria-label="'Excluir comentário'"
+                                                wire:confirm="{{ __('Tem certeza que deseja excluir este comentário?') }}"
+                                                :aria-label="__('Excluir comentário')"
                                             />
                                         </div>
                                     @endif
@@ -686,10 +686,10 @@ new class extends Component
                                         <flux:error name="editingCommentBody" />
                                         <div class="flex justify-end gap-2">
                                             <flux:button type="button" variant="subtle" size="sm" wire:click="cancelEditingComment">
-                                                Cancelar
+                                                {{ __('Cancelar') }}
                                             </flux:button>
                                             <flux:button type="submit" variant="primary" size="sm" icon="check">
-                                                Salvar
+                                                {{ __('Salvar') }}
                                             </flux:button>
                                         </div>
                                     </form>
@@ -702,7 +702,7 @@ new class extends Component
                 @else
                     <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
                         <flux:icon name="chat-bubble-left-ellipsis" class="size-6 text-zinc-400 dark:text-zinc-500" />
-                        <flux:text class="text-sm">Nenhum comentário ainda.</flux:text>
+                        <flux:text class="text-sm">{{ __('Nenhum comentário ainda.') }}</flux:text>
                     </div>
                 @endif
             </div>
@@ -714,14 +714,14 @@ new class extends Component
             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                 <flux:icon name="paper-clip" class="size-4" />
             </div>
-            <flux:heading size="sm">Anexos (TSSR / PPI / DOC-D / Nota Fiscal)</flux:heading>
+            <flux:heading size="sm">{{ __('Anexos (TSSR / PPI / DOC-D / Nota Fiscal)') }}</flux:heading>
         </div>
         <div class="flex flex-wrap items-center justify-between gap-3">
             <flux:text class="mt-1 text-sm">
-                TSSR e PPI: projeto preliminar de instalação (PDF/ZIP). DOC-D: planilha de documentos desinstalados (XLSX/XLS). Nota Fiscal: comprovante em PDF.
+                {{ __('TSSR e PPI: projeto preliminar de instalação (PDF/ZIP). DOC-D: planilha de documentos desinstalados (XLSX/XLS). Nota Fiscal: comprovante em PDF.') }}
             </flux:text>
             <flux:button wire:click="openAttachmentModal" variant="primary" size="sm" icon="arrow-up-tray">
-                Enviar anexo
+                {{ __('Enviar anexo') }}
             </flux:button>
         </div>
 
@@ -755,7 +755,7 @@ new class extends Component
                                         icon-only
                                         icon="eye"
                                         wire:click="openPreview({{ $attachment->id }})"
-                                        :aria-label="'Visualizar ' . $attachment->original_name"
+                                        :aria-label="__('Visualizar ') . $attachment->original_name"
                                     />
                                 @endif
                                 <flux:button
@@ -764,7 +764,7 @@ new class extends Component
                                     icon-only
                                     icon="arrow-down-tray"
                                     wire:click="downloadAttachment({{ $attachment->id }})"
-                                    :aria-label="'Baixar ' . $attachment->original_name"
+                                    :aria-label="__('Baixar ') . $attachment->original_name"
                                 />
                                 <flux:button
                                     variant="ghost"
@@ -772,8 +772,8 @@ new class extends Component
                                     icon-only
                                     icon="trash"
                                     wire:click="deleteAttachment({{ $attachment->id }})"
-                                    wire:confirm="Tem certeza que deseja excluir este anexo?"
-                                    :aria-label="'Excluir ' . $attachment->original_name"
+                                    wire:confirm="{{ __('Tem certeza que deseja excluir este anexo?') }}"
+                                    :aria-label="__('Excluir ') . $attachment->original_name"
                                 />
                             </div>
                         </div>
@@ -787,7 +787,7 @@ new class extends Component
         @else
             <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
                 <flux:icon name="paper-clip" class="size-6 text-zinc-400 dark:text-zinc-500" />
-                <flux:text class="text-sm">Nenhum anexo cadastrado para esta estação.</flux:text>
+                <flux:text class="text-sm">{{ __('Nenhum anexo cadastrado para esta estação.') }}</flux:text>
             </div>
         @endif
     </div>
@@ -797,12 +797,12 @@ new class extends Component
             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                 <flux:icon name="archive-box" class="size-4" />
             </div>
-            <flux:heading size="sm">Outros Anexos</flux:heading>
+            <flux:heading size="sm">{{ __('Outros Anexos') }}</flux:heading>
         </div>
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <flux:text class="mt-1 text-sm">Arquivos diversos relacionados à estação. Qualquer formato é aceito.</flux:text>
+            <flux:text class="mt-1 text-sm">{{ __('Arquivos diversos relacionados à estação. Qualquer formato é aceito.') }}</flux:text>
             <flux:button wire:click="openOtherAttachmentModal" variant="primary" size="sm" icon="arrow-up-tray">
-                Enviar anexo
+                {{ __('Enviar anexo') }}
             </flux:button>
         </div>
 
@@ -835,7 +835,7 @@ new class extends Component
                                         icon-only
                                         icon="eye"
                                         wire:click="openPreview({{ $attachment->id }})"
-                                        :aria-label="'Visualizar ' . $attachment->original_name"
+                                        :aria-label="__('Visualizar ') . $attachment->original_name"
                                     />
                                 @endif
                                 <flux:button
@@ -844,7 +844,7 @@ new class extends Component
                                     icon-only
                                     icon="arrow-down-tray"
                                     wire:click="downloadAttachment({{ $attachment->id }})"
-                                    :aria-label="'Baixar ' . $attachment->original_name"
+                                    :aria-label="__('Baixar ') . $attachment->original_name"
                                 />
                                 <flux:button
                                     variant="ghost"
@@ -852,8 +852,8 @@ new class extends Component
                                     icon-only
                                     icon="trash"
                                     wire:click="deleteAttachment({{ $attachment->id }})"
-                                    wire:confirm="Tem certeza que deseja excluir este anexo?"
-                                    :aria-label="'Excluir ' . $attachment->original_name"
+                                    wire:confirm="{{ __('Tem certeza que deseja excluir este anexo?') }}"
+                                    :aria-label="__('Excluir ') . $attachment->original_name"
                                 />
                             </div>
                         </div>
@@ -867,20 +867,20 @@ new class extends Component
         @else
             <div class="mt-6 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-600">
                 <flux:icon name="archive-box" class="size-6 text-zinc-400 dark:text-zinc-500" />
-                <flux:text class="text-sm">Nenhum anexo neste grupo.</flux:text>
+                <flux:text class="text-sm">{{ __('Nenhum anexo neste grupo.') }}</flux:text>
             </div>
         @endif
     </div>
 
     @if ($showAttachmentModal)
         <flux:modal wire:model="showAttachmentModal" data-test="attachment-modal">
-            <flux:heading size="lg">Enviar Anexo</flux:heading>
-            <flux:text class="mt-1 text-sm">Anexo para {{ $this->station->site_id }}</flux:text>
+            <flux:heading size="lg">{{ __('Enviar Anexo') }}</flux:heading>
+            <flux:text class="mt-1 text-sm">{{ __('Anexo para ') }}{{ $this->station->site_id }}</flux:text>
 
             <form wire:submit="saveAttachment" class="mt-6 space-y-4">
                 <flux:field>
-                    <flux:label>Tipo</flux:label>
-                    <flux:select wire:model.live="attachmentType" placeholder="Selecione o tipo...">
+                    <flux:label>{{ __('Tipo') }}</flux:label>
+                    <flux:select wire:model.live="attachmentType" placeholder="{{ __('Selecione o tipo...') }}">
                         @foreach ($this->attachmentTypes as $type)
                             <flux:select.option value="{{ $type['value'] }}">{{ $type['label'] }}</flux:select.option>
                         @endforeach
@@ -889,7 +889,7 @@ new class extends Component
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Arquivo</flux:label>
+                    <flux:label>{{ __('Arquivo') }}</flux:label>
                     <input
                         type="file"
                         wire:model="attachmentFile"
@@ -901,10 +901,10 @@ new class extends Component
 
                 <div class="flex justify-end gap-3 pt-2">
                     <flux:button type="button" variant="subtle" wire:click="$wire.set('showAttachmentModal', false)">
-                        Cancelar
+                        {{ __('Cancelar') }}
                     </flux:button>
                     <flux:button type="submit" variant="primary" icon="arrow-up-tray">
-                        Enviar
+                        {{ __('Enviar') }}
                     </flux:button>
                 </div>
             </form>
@@ -913,12 +913,12 @@ new class extends Component
 
     @if ($showOtherAttachmentModal)
         <flux:modal wire:model="showOtherAttachmentModal" data-test="other-attachment-modal">
-            <flux:heading size="lg">Enviar Anexo</flux:heading>
-            <flux:text class="mt-1 text-sm">Arquivo diverso para {{ $this->station->site_id }}</flux:text>
+            <flux:heading size="lg">{{ __('Enviar Anexo') }}</flux:heading>
+            <flux:text class="mt-1 text-sm">{{ __('Arquivo diverso para ') }}{{ $this->station->site_id }}</flux:text>
 
             <form wire:submit="saveOtherAttachment" class="mt-6 space-y-4">
                 <flux:field>
-                    <flux:label>Arquivo</flux:label>
+                    <flux:label>{{ __('Arquivo') }}</flux:label>
                     <input
                         type="file"
                         wire:model="otherAttachmentFile"
@@ -929,10 +929,10 @@ new class extends Component
 
                 <div class="flex justify-end gap-3 pt-2">
                     <flux:button type="button" variant="subtle" wire:click="$wire.set('showOtherAttachmentModal', false)">
-                        Cancelar
+                        {{ __('Cancelar') }}
                     </flux:button>
                     <flux:button type="submit" variant="primary" icon="arrow-up-tray">
-                        Enviar
+                        {{ __('Enviar') }}
                     </flux:button>
                 </div>
             </form>
@@ -950,7 +950,7 @@ new class extends Component
                             variant="ghost"
                             icon="x-mark"
                             size="sm"
-                            aria-label="Fechar"
+                            aria-label="{{ __('Fechar') }}"
                             class="text-zinc-400! hover:text-zinc-800! dark:text-zinc-500! dark:hover:text-white!"
                         />
                     </flux:modal.close>
@@ -974,14 +974,14 @@ new class extends Component
 
                 <div class="flex items-center justify-end gap-3 border-t border-zinc-100 px-6 py-4 dark:border-zinc-700/60">
                     <flux:button variant="subtle" wire:click="closePreview">
-                        Fechar
+                        {{ __('Fechar') }}
                     </flux:button>
                     <flux:button
                         variant="primary"
                         icon="arrow-down-tray"
                         wire:click="downloadAttachment({{ $this->previewAttachment->id }})"
                     >
-                        Baixar
+                        {{ __('Baixar') }}
                     </flux:button>
                 </div>
             </div>
@@ -990,16 +990,16 @@ new class extends Component
 
     @if ($showCommentModal)
         <flux:modal wire:model="showCommentModal" data-test="comment-modal">
-            <flux:heading size="lg">Novo Comentário</flux:heading>
-            <flux:text class="mt-1 text-sm">Comentário em {{ $this->station->site_id }}</flux:text>
+            <flux:heading size="lg">{{ __('Novo Comentário') }}</flux:heading>
+            <flux:text class="mt-1 text-sm">{{ __('Comentário em ') }}{{ $this->station->site_id }}</flux:text>
 
             <form wire:submit="saveComment" class="mt-6 space-y-4">
                 <flux:field>
-                    <flux:label>Comentário</flux:label>
+                    <flux:label>{{ __('Comentário') }}</flux:label>
                     <flux:textarea
                         wire:model="commentBody"
                         rows="4"
-                        placeholder="Escreva seu comentário..."
+                        placeholder="{{ __('Escreva seu comentário...') }}"
                         autofocus
                     />
                     <flux:error name="commentBody" />
@@ -1007,10 +1007,10 @@ new class extends Component
 
                 <div class="flex justify-end gap-3 pt-2">
                     <flux:button type="button" variant="subtle" wire:click="$wire.set('showCommentModal', false)">
-                        Cancelar
+                        {{ __('Cancelar') }}
                     </flux:button>
                     <flux:button type="submit" variant="primary" icon="chat-bubble-left-ellipsis">
-                        Publicar
+                        {{ __('Publicar') }}
                     </flux:button>
                 </div>
             </form>

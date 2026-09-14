@@ -79,20 +79,20 @@ new class extends Component
 <div class="space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <flux:heading size="lg">Usuários</flux:heading>
-            <flux:text class="mt-1">Gerencie as contas do painel e defina o perfil de acesso de cada pessoa.</flux:text>
-            <flux:text class="mt-2 text-sm font-medium">{{ $this->counts['total'] }} usuários no total</flux:text>
+            <flux:heading size="lg">{{ __('Usuários') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Gerencie as contas do painel e defina o perfil de acesso de cada pessoa.') }}</flux:text>
+            <flux:text class="mt-2 text-sm font-medium">{{ $this->counts['total'] }} {{ __('usuários no total') }}</flux:text>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
             @if ($this->role !== null || $this->search !== '')
                 <flux:button variant="subtle" size="sm" wire:click="$wire.set('search', ''); $wire.set('role', null)">
-                    Limpar filtros
+                    {{ __('Limpar filtros') }}
                 </flux:button>
             @endif
 
             <flux:button :href="route('admin.users.create')" variant="primary" icon="plus" wire:navigate>
-                Novo Usuário
+                {{ __('Novo Usuário') }}
             </flux:button>
         </div>
     </div>
@@ -100,7 +100,7 @@ new class extends Component
     <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div
             role="group"
-            aria-label="Filtrar por perfil"
+            aria-label="{{ __('Filtrar por perfil') }}"
             class="flex flex-wrap items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-800/70"
         >
             @php
@@ -116,7 +116,7 @@ new class extends Component
                 aria-pressed="{{ $this->role === null ? 'true' : 'false' }}"
                 class="{{ $filterButtonClasses($this->role === null) }}"
             >
-                Todos
+                {{ __('Todos') }}
                 <span class="text-xs font-semibold tracking-tight">{{ $this->counts['total'] }}</span>
             </button>
 
@@ -140,7 +140,7 @@ new class extends Component
                 wire:model.live="search"
                 clearable
                 icon="magnifying-glass"
-                placeholder="Buscar por nome ou email..."
+                placeholder="{{ __('Buscar por nome ou email...') }}"
             />
         </div>
     </div>
@@ -150,11 +150,11 @@ new class extends Component
             <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                 <flux:icon name="users" class="size-6" />
             </div>
-            <flux:heading size="lg" class="mt-4">Nenhum usuário ainda</flux:heading>
-            <flux:text class="mt-1">Crie a primeira conta para começar a gerenciar o acesso ao painel.</flux:text>
+            <flux:heading size="lg" class="mt-4">{{ __('Nenhum usuário ainda') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Crie a primeira conta para começar a gerenciar o acesso ao painel.') }}</flux:text>
             <div class="mt-5">
                 <flux:button :href="route('admin.users.create')" variant="primary" icon="plus" wire:navigate>
-                    Novo Usuário
+                    {{ __('Novo Usuário') }}
                 </flux:button>
             </div>
         </flux:card>
@@ -162,10 +162,10 @@ new class extends Component
         <flux:card class="overflow-hidden">
             <flux:table bleed :paginate="$this->users">
                 <flux:table.columns>
-                    <flux:table.column scope="col">Usuário</flux:table.column>
-                    <flux:table.column scope="col">Email</flux:table.column>
-                    <flux:table.column scope="col">Perfil</flux:table.column>
-                    <flux:table.column scope="col">Criado em</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Usuário') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Email') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Perfil') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Criado em') }}</flux:table.column>
                     <flux:table.column scope="col" class="w-px"></flux:table.column>
                 </flux:table.columns>
 
@@ -185,7 +185,7 @@ new class extends Component
                                     >
                                         {{ $user->name }}
                                         @if ($user->id === auth()->id())
-                                            <span class="text-xs font-normal text-zinc-400 dark:text-zinc-500">(você)</span>
+                                            <span class="text-xs font-normal text-zinc-400 dark:text-zinc-500">{{ __('(você)') }}</span>
                                         @endif
                                     </a>
                                 </div>
@@ -208,7 +208,7 @@ new class extends Component
                                     icon="arrow-right"
                                     :href="route('admin.users.show', $user)"
                                     wire:navigate
-                                    :aria-label="'Ver usuário ' . $user->name"
+                                    :aria-label="__('Ver usuário ') . $user->name"
                                 />
                             </flux:table.cell>
                         </flux:table.row>
@@ -219,15 +219,15 @@ new class extends Component
                                     <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                                         <flux:icon name="magnifying-glass" class="size-5" />
                                     </div>
-                                    <flux:heading size="sm" class="mt-3">Nenhum usuário encontrado</flux:heading>
-                                    <flux:text class="mt-1">Nenhum registro corresponde à busca ou aos filtros aplicados.</flux:text>
+                                    <flux:heading size="sm" class="mt-3">{{ __('Nenhum usuário encontrado') }}</flux:heading>
+                                    <flux:text class="mt-1">{{ __('Nenhum registro corresponde à busca ou aos filtros aplicados.') }}</flux:text>
                                     <div class="mt-4">
                                         <flux:button
                                             variant="subtle"
                                             size="sm"
                                             wire:click="$wire.set('search', ''); $wire.set('role', null)"
                                         >
-                                            Limpar filtros
+                                            {{ __('Limpar filtros') }}
                                         </flux:button>
                                     </div>
                                 </div>

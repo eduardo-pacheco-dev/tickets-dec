@@ -97,13 +97,13 @@ new class extends Component
 <div class="space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <flux:heading size="lg">Relatórios</flux:heading>
-            <flux:text class="mt-1">Gerencie os tipos de relatório disponíveis para abertura de tickets.</flux:text>
-            <flux:text class="mt-2 text-sm font-medium">{{ count($this->reportTypes) }} tipos cadastrados</flux:text>
+            <flux:heading size="lg">{{ __('Relatórios') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Gerencie os tipos de relatório disponíveis para abertura de tickets.') }}</flux:text>
+            <flux:text class="mt-2 text-sm font-medium">{{ count($this->reportTypes) }} {{ __('tipos cadastrados') }}</flux:text>
         </div>
 
         <flux:button wire:click="openCreate" variant="primary" icon="plus">
-            Novo Tipo
+            {{ __('Novo Tipo') }}
         </flux:button>
     </div>
 
@@ -112,11 +112,11 @@ new class extends Component
             <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                 <flux:icon name="document-text" class="size-6" />
             </div>
-            <flux:heading size="lg" class="mt-4">Nenhum tipo de relatório</flux:heading>
-            <flux:text class="mt-1">Crie o primeiro tipo para que os técnicos possam selecioná-lo ao abrir tickets.</flux:text>
+            <flux:heading size="lg" class="mt-4">{{ __('Nenhum tipo de relatório') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Crie o primeiro tipo para que os técnicos possam selecioná-lo ao abrir tickets.') }}</flux:text>
             <div class="mt-5">
                 <flux:button wire:click="openCreate" variant="primary" icon="plus">
-                    Novo Tipo
+                    {{ __('Novo Tipo') }}
                 </flux:button>
             </div>
         </flux:card>
@@ -124,10 +124,10 @@ new class extends Component
         <flux:card class="overflow-hidden">
             <flux:table bleed>
                 <flux:table.columns>
-                    <flux:table.column scope="col">Nome</flux:table.column>
-                    <flux:table.column scope="col">Descrição</flux:table.column>
-                    <flux:table.column scope="col">Status</flux:table.column>
-                    <flux:table.column scope="col">Tickets</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Nome') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Descrição') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Status') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Tickets') }}</flux:table.column>
                     <flux:table.column scope="col" class="w-px"></flux:table.column>
                 </flux:table.columns>
 
@@ -145,9 +145,9 @@ new class extends Component
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if ($reportType->is_active)
-                                    <flux:badge color="green" size="sm">Ativo</flux:badge>
+                                    <flux:badge color="green" size="sm">{{ __('Ativo') }}</flux:badge>
                                 @else
-                                    <flux:badge color="zinc" size="sm">Inativo</flux:badge>
+                                    <flux:badge color="zinc" size="sm">{{ __('Inativo') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
@@ -161,7 +161,7 @@ new class extends Component
                                         icon-only
                                         icon="pencil"
                                         wire:click="openEdit({{ $reportType->id }})"
-                                        aria-label="Editar {{ $reportType->name }}"
+                                        aria-label="{{ __('Editar ') }}{{ $reportType->name }}"
                                     />
                                     <flux:button
                                         variant="ghost"
@@ -169,7 +169,7 @@ new class extends Component
                                         icon-only
                                         :icon="$reportType->is_active ? 'eye-slash' : 'eye'"
                                         wire:click="toggleActive({{ $reportType->id }})"
-                                        :aria-label="$reportType->is_active ? 'Desativar ' . $reportType->name : 'Ativar ' . $reportType->name"
+                                        :aria-label="$reportType->is_active ? __('Desativar ') . $reportType->name : __('Ativar ') . $reportType->name"
                                     />
                                     @if ($reportType->tickets_count === 0)
                                         <flux:button
@@ -178,8 +178,8 @@ new class extends Component
                                             icon-only
                                             icon="trash"
                                             wire:click="delete({{ $reportType->id }})"
-                                            wire:confirm="Tem certeza que deseja excluir este tipo?"
-                                            :aria-label="'Excluir ' . $reportType->name"
+                                            wire:confirm="{{ __('Tem certeza que deseja excluir este tipo?') }}"
+                                            :aria-label="__('Excluir ') . $reportType->name"
                                         />
                                     @endif
                                 </div>
@@ -193,37 +193,37 @@ new class extends Component
 
     @if ($showModal)
         <flux:modal wire:model="showModal" :data-test="$editingId ? 'edit-report-type-modal' : 'create-report-type-modal'">
-            <flux:heading size="lg">{{ $editingId ? 'Editar' : 'Novo' }} Tipo de Relatório</flux:heading>
+            <flux:heading size="lg">{{ $editingId ? __('Editar') : __('Novo') }} {{ __('Tipo de Relatório') }}</flux:heading>
 
             <form wire:submit="save" class="mt-6 space-y-5">
                 <flux:field>
-                    <flux:label>Nome</flux:label>
-                    <flux:input wire:model="name" placeholder="Ex: Vistoria Elétrica" autofocus />
+                    <flux:label>{{ __('Nome') }}</flux:label>
+                    <flux:input wire:model="name" placeholder="{{ __('Ex: Vistoria Elétrica') }}" autofocus />
                     <flux:error name="name" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Descrição</flux:label>
-                    <flux:textarea wire:model="description" rows="2" placeholder="Opcional. Descreva brevemente este tipo de relatório." />
+                    <flux:label>{{ __('Descrição') }}</flux:label>
+                    <flux:textarea wire:model="description" rows="2" placeholder="{{ __('Opcional. Descreva brevemente este tipo de relatório.') }}" />
                     <flux:error name="description" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Ordem</flux:label>
+                    <flux:label>{{ __('Ordem') }}</flux:label>
                     <flux:input wire:model="sort_order" type="number" min="0" />
                     <flux:error name="sort_order" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:checkbox wire:model="is_active" label="Ativo (aparece na seleção de tickets)" />
+                    <flux:checkbox wire:model="is_active" label="{{ __('Ativo (aparece na seleção de tickets)') }}" />
                 </flux:field>
 
                 <div class="flex justify-end gap-3 pt-2">
                     <flux:button type="button" variant="subtle" wire:click="$wire.set('showModal', false)">
-                        Cancelar
+                        {{ __('Cancelar') }}
                     </flux:button>
                     <flux:button type="submit" variant="primary">
-                        {{ $editingId ? 'Salvar' : 'Criar' }}
+                        {{ $editingId ? __('Salvar') : __('Criar') }}
                     </flux:button>
                 </div>
             </form>

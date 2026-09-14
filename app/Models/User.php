@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Locale;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -20,6 +21,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
  * @property string $name
  * @property UserRole $role
  * @property string $email
+ * @property Locale|null $locale
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -29,7 +31,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'locale'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -42,6 +44,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'locale' => Locale::class,
         ];
     }
 

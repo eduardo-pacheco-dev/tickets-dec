@@ -93,9 +93,9 @@ new class extends Component
 <div class="space-y-6">
     <div class="flex items-center gap-3">
         <flux:button variant="ghost" icon="arrow-left" href="{{ route('admin.tickets.index') }}" wire:navigate>
-            Voltar
+            {{ __('Voltar') }}
         </flux:button>
-        <flux:heading size="lg">Ticket {{ $this->ticket->tracking_code }}</flux:heading>
+        <flux:heading size="lg">{{ __('Ticket') }} {{ $this->ticket->tracking_code }}</flux:heading>
         <flux:badge color="{{ $this->ticket->status->color() }}">
             {{ $this->ticket->status->label() }}
         </flux:badge>
@@ -104,28 +104,28 @@ new class extends Component
     <div class="grid gap-6 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">
             <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-                <flux:heading size="sm" class="mb-4">Informações do Ticket</flux:heading>
+                <flux:heading size="sm" class="mb-4">{{ __('Informações do Ticket') }}</flux:heading>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <flux:text class="text-xs font-medium uppercase text-gray-500">Site ID</flux:text>
+                        <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Site ID') }}</flux:text>
                         <flux:text class="mt-1 font-medium">{{ $this->ticket->site_id }}</flux:text>
                     </div>
                     <div>
-                        <flux:text class="text-xs font-medium uppercase text-gray-500">Técnico</flux:text>
+                        <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Técnico') }}</flux:text>
                         <flux:text class="mt-1 font-medium">{{ $this->ticket->technician_name }}</flux:text>
                     </div>
                     <div>
-                        <flux:text class="text-xs font-medium uppercase text-gray-500">Check-in</flux:text>
-                        <flux:text class="mt-1 font-medium">{{ $this->ticket->checked_in ? 'Sim' : 'Não' }}</flux:text>
+                        <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Check-in') }}</flux:text>
+                        <flux:text class="mt-1 font-medium">{{ $this->ticket->checked_in ? __('Sim') : __('Não') }}</flux:text>
                     </div>
                     <div>
-                        <flux:text class="text-xs font-medium uppercase text-gray-500">Aberto em</flux:text>
+                        <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Aberto em') }}</flux:text>
                         <flux:text class="mt-1 font-medium">{{ $this->ticket->created_at->format('d/m/Y H:i') }}</flux:text>
                     </div>
                 </div>
 
                 <div class="mt-4">
-                    <flux:text class="text-xs font-medium uppercase text-gray-500">Relatório(s) Solicitado(s)</flux:text>
+                    <flux:text class="text-xs font-medium uppercase text-gray-500">{{ __('Relatório(s) Solicitado(s)') }}</flux:text>
                     @if ($this->ticket->reportTypes->isNotEmpty())
                         <div class="mt-1 flex flex-wrap gap-1">
                             @foreach ($this->ticket->reportTypes as $reportType)
@@ -141,16 +141,16 @@ new class extends Component
 
             @if (auth()->user()->role->canManageTickets())
                 <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-                    <flux:heading size="sm" class="mb-4">Resposta do Analista</flux:heading>
+                    <flux:heading size="sm" class="mb-4">{{ __('Resposta do Analista') }}</flux:heading>
                     <form wire:submit="saveResponse" class="space-y-4">
                         <flux:textarea
                             wire:model="admin_response"
                             rows="4"
-                            placeholder="Escreva sua resposta ao técnico..."
+                            placeholder="{{ __('Escreva sua resposta ao técnico...') }}"
                         />
                         <flux:error name="admin_response" />
                         <flux:button type="submit" variant="primary">
-                            Salvar Resposta
+                            {{ __('Salvar Resposta') }}
                         </flux:button>
                     </form>
                 </div>
@@ -160,7 +160,7 @@ new class extends Component
         <div class="space-y-6">
             @if (auth()->user()->role->canManageTickets())
                 <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-                    <flux:heading size="sm" class="mb-4">Alterar Status</flux:heading>
+                    <flux:heading size="sm" class="mb-4">{{ __('Alterar Status') }}</flux:heading>
                     <form wire:submit="updateStatus" class="space-y-4">
                         <flux:select wire:model="new_status">
                             @foreach (TicketStatus::cases() as $status)
@@ -171,19 +171,19 @@ new class extends Component
                         </flux:select>
                         <flux:error name="new_status" />
                         <flux:button type="submit" variant="primary" class="w-full">
-                            Atualizar Status
+                            {{ __('Atualizar Status') }}
                         </flux:button>
                     </form>
                 </div>
             @endif
 
             <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
-                <flux:heading size="sm" class="mb-4">Timeline</flux:heading>
+                <flux:heading size="sm" class="mb-4">{{ __('Timeline') }}</flux:heading>
                 <div class="space-y-3">
                     <div class="flex items-start gap-3">
                         <div class="mt-1 size-2 shrink-0 rounded-full bg-green-500"></div>
                         <div>
-                            <flux:text class="text-sm font-medium">Ticket criado</flux:text>
+                            <flux:text class="text-sm font-medium">{{ __('Ticket criado') }}</flux:text>
                             <flux:text class="text-xs text-gray-500">{{ $this->ticket->created_at->format('d/m/Y H:i') }}</flux:text>
                         </div>
                     </div>
@@ -191,7 +191,7 @@ new class extends Component
                         <div class="flex items-start gap-3">
                             <div class="mt-1 size-2 shrink-0 rounded-full bg-blue-500"></div>
                             <div>
-                                <flux:text class="text-sm font-medium">Última atualização</flux:text>
+                                <flux:text class="text-sm font-medium">{{ __('Última atualização') }}</flux:text>
                                 <flux:text class="text-xs text-gray-500">{{ $this->ticket->updated_at->format('d/m/Y H:i') }}</flux:text>
                             </div>
                         </div>

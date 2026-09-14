@@ -10,4 +10,8 @@
             <flux:radio value="system" icon="computer-desktop">{{ __('System') }}</flux:radio>
         </flux:radio.group>
     </x-settings.layout>
+
+    <x-settings.layout :heading="__('Language')" :subheading="__('Select the language for the interface')">
+        <livewire:language-selector />
+    </x-settings.layout>
 </section>

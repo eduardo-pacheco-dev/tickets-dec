@@ -438,28 +438,28 @@ new class extends Component
 
 @php
     $stationSteps = [
-        1 => ['label' => 'Identificação', 'description' => 'Site, elemento e tecnologia', 'icon' => 'identification'],
-        2 => ['label' => 'Infraestrutura', 'description' => 'Detentores, contrato e tipo', 'icon' => 'building-office'],
-        3 => ['label' => 'Endereço', 'description' => 'Localização do site', 'icon' => 'map-pin'],
-        4 => ['label' => 'Coordenadas', 'description' => 'Dimensões e observações', 'icon' => 'chart-bar'],
+        1 => ['label' => __('Identificação'), 'description' => __('Site, elemento e tecnologia'), 'icon' => 'identification'],
+        2 => ['label' => __('Infraestrutura'), 'description' => __('Detentores, contrato e tipo'), 'icon' => 'building-office'],
+        3 => ['label' => __('Endereço'), 'description' => __('Localização do site'), 'icon' => 'map-pin'],
+        4 => ['label' => __('Coordenadas'), 'description' => __('Dimensões e observações'), 'icon' => 'chart-bar'],
     ];
 @endphp
 
 <div class="space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <flux:heading size="lg">Estações</flux:heading>
-            <flux:text class="mt-1">Cadastro de estações de telecomunicações vinculadas aos sites.</flux:text>
-            <flux:text class="mt-2 text-sm font-medium">{{ $this->counts['total'] }} estações cadastradas</flux:text>
+            <flux:heading size="lg">{{ __('Estações') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Cadastro de estações de telecomunicações vinculadas aos sites.') }}</flux:text>
+            <flux:text class="mt-2 text-sm font-medium">{{ $this->counts['total'] }} {{ __('estações cadastradas') }}</flux:text>
         </div>
 
         <div class="flex items-center gap-2">
             <flux:button wire:click="openImport" variant="subtle" icon="arrow-up-tray">
-                Importar
+                {{ __('Importar') }}
             </flux:button>
 
             <flux:button wire:click="openCreate" variant="primary" icon="plus">
-                Nova Estação
+                {{ __('Nova Estação') }}
             </flux:button>
         </div>
     </div>
@@ -471,7 +471,7 @@ new class extends Component
                 size="sm"
                 wire:click="resetFilters"
             >
-                Limpar filtros
+                {{ __('Limpar filtros') }}
             </flux:button>
         </div>
     @endif
@@ -480,7 +480,7 @@ new class extends Component
         <div class="flex flex-wrap items-center gap-3">
             <div
                 role="group"
-                aria-label="Filtrar por status"
+                aria-label="{{ __('Filtrar por status') }}"
                 class="flex flex-wrap items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-800/70"
             >
                 @php
@@ -496,7 +496,7 @@ new class extends Component
                     aria-pressed="{{ $this->activeFilter === '' ? 'true' : 'false' }}"
                     class="{{ $statusButtonClasses($this->activeFilter === '') }}"
                 >
-                    Todas
+                    {{ __('Todas') }}
                     <span class="text-xs font-semibold tracking-tight">{{ $this->counts['total'] }}</span>
                 </button>
 
@@ -508,7 +508,7 @@ new class extends Component
                     class="{{ $statusButtonClasses($this->activeFilter === '1') }}"
                 >
                     <span class="size-1.5 shrink-0 rounded-full bg-emerald-500"></span>
-                    Ativas
+                    {{ __('Ativas') }}
                     <span class="text-xs font-semibold tracking-tight">{{ $this->counts['active'] }}</span>
                 </button>
 
@@ -520,14 +520,14 @@ new class extends Component
                     class="{{ $statusButtonClasses($this->activeFilter === '0') }}"
                 >
                     <span class="size-1.5 shrink-0 rounded-full bg-zinc-400"></span>
-                    Inativas
+                    {{ __('Inativas') }}
                     <span class="text-xs font-semibold tracking-tight">{{ $this->counts['inactive'] }}</span>
                 </button>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
                 <div class="w-40">
-                    <flux:select wire:model.live="stateFilter" placeholder="UF">
+                    <flux:select wire:model.live="stateFilter" placeholder="{{ __('UF') }}">
                         @foreach ($this->states as $state)
                             <flux:select.option value="{{ $state }}">{{ $state }}</flux:select.option>
                         @endforeach
@@ -535,7 +535,7 @@ new class extends Component
                 </div>
 
                 <div class="w-48">
-                    <flux:select wire:model.live="technologyFilter" placeholder="Tecnologia">
+                    <flux:select wire:model.live="technologyFilter" placeholder="{{ __('Tecnologia') }}">
                         @foreach ($this->technologies as $technology)
                             <flux:select.option value="{{ $technology }}">{{ $technology }}</flux:select.option>
                         @endforeach
@@ -543,7 +543,7 @@ new class extends Component
                 </div>
 
                 <div class="w-48">
-                    <flux:select wire:model.live="classificationFilter" placeholder="Classificação">
+                    <flux:select wire:model.live="classificationFilter" placeholder="{{ __('Classificação') }}">
                         @foreach ($this->classifications as $classification)
                             <flux:select.option value="{{ $classification }}">{{ $classification }}</flux:select.option>
                         @endforeach
@@ -557,7 +557,7 @@ new class extends Component
                 wire:model.live.debounce.300ms="search"
                 clearable
                 icon="magnifying-glass"
-                placeholder="Buscar por site, endereço, município, regional..."
+                placeholder="{{ __('Buscar por site, endereço, município, regional...') }}"
             />
         </div>
     </div>
@@ -567,11 +567,11 @@ new class extends Component
             <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                 <flux:icon name="computer-desktop" class="size-6" />
             </div>
-            <flux:heading size="lg" class="mt-4">Nenhuma estação</flux:heading>
-            <flux:text class="mt-1">Cadastre a primeira estação de telecomunicação.</flux:text>
+            <flux:heading size="lg" class="mt-4">{{ __('Nenhuma estação') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('Cadastre a primeira estação de telecomunicação.') }}</flux:text>
             <div class="mt-5">
                 <flux:button wire:click="openCreate" variant="primary" icon="plus">
-                    Nova Estação
+                    {{ __('Nova Estação') }}
                 </flux:button>
             </div>
         </flux:card>
@@ -585,30 +585,30 @@ new class extends Component
                         :sorted="$this->sortBy === 'site_id'"
                         :direction="$this->sortDirection"
                         wire:click="sort('site_id')"
-                    >Site ID</flux:table.column>
-                    <flux:table.column scope="col">Endereço ID</flux:table.column>
+                    >{{ __('Site ID') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Endereço ID') }}</flux:table.column>
                     <flux:table.column
                         scope="col"
                         sortable
                         :sorted="$this->sortBy === 'element_type'"
                         :direction="$this->sortDirection"
                         wire:click="sort('element_type')"
-                    >Elemento</flux:table.column>
+                    >{{ __('Elemento') }}</flux:table.column>
                     <flux:table.column
                         scope="col"
                         sortable
                         :sorted="$this->sortBy === 'technology'"
                         :direction="$this->sortDirection"
                         wire:click="sort('technology')"
-                    >Tecnologia</flux:table.column>
+                    >{{ __('Tecnologia') }}</flux:table.column>
                     <flux:table.column
                         scope="col"
                         sortable
                         :sorted="$this->sortBy === 'city'"
                         :direction="$this->sortDirection"
                         wire:click="sort('city')"
-                    >Município</flux:table.column>
-                    <flux:table.column scope="col">Status</flux:table.column>
+                    >{{ __('Município') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Status') }}</flux:table.column>
                     <flux:table.column scope="col" class="w-px"></flux:table.column>
                 </flux:table.columns>
 
@@ -639,9 +639,9 @@ new class extends Component
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if ($station->is_active)
-                                    <flux:badge color="green" size="sm">Ativa</flux:badge>
+                                    <flux:badge color="green" size="sm">{{ __('Ativa') }}</flux:badge>
                                 @else
-                                    <flux:badge color="zinc" size="sm">Inativa</flux:badge>
+                                    <flux:badge color="zinc" size="sm">{{ __('Inativa') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell align="end">
@@ -652,7 +652,7 @@ new class extends Component
                                         icon-only
                                         icon="pencil"
                                         wire:click="openEdit({{ $station->id }})"
-                                        :aria-label="'Editar ' . $station->site_id"
+                                        :aria-label="__('Editar ') . $station->site_id"
                                     />
                                     <flux:button
                                         variant="ghost"
@@ -660,7 +660,7 @@ new class extends Component
                                         icon-only
                                         :icon="$station->is_active ? 'eye-slash' : 'eye'"
                                         wire:click="toggleActive({{ $station->id }})"
-                                        :aria-label="$station->is_active ? 'Desativar ' . $station->site_id : 'Ativar ' . $station->site_id"
+                                        :aria-label="$station->is_active ? __('Desativar ') . $station->site_id : __('Ativar ') . $station->site_id"
                                     />
                                     <flux:button
                                         variant="ghost"
@@ -668,8 +668,8 @@ new class extends Component
                                         icon-only
                                         icon="trash"
                                         wire:click="delete({{ $station->id }})"
-                                        wire:confirm="Tem certeza que deseja excluir esta estação?"
-                                        :aria-label="'Excluir ' . $station->site_id"
+                                        wire:confirm="{{ __('Tem certeza que deseja excluir esta estação?') }}"
+                                        :aria-label="__('Excluir ') . $station->site_id"
                                     />
                                 </div>
                             </flux:table.cell>
@@ -681,15 +681,15 @@ new class extends Component
                                     <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                                         <flux:icon name="magnifying-glass" class="size-5" />
                                     </div>
-                                    <flux:heading size="sm" class="mt-3">Nenhuma estação encontrada</flux:heading>
-                                    <flux:text class="mt-1">Nenhum registro corresponde à busca ou aos filtros aplicados.</flux:text>
+                                    <flux:heading size="sm" class="mt-3">{{ __('Nenhuma estação encontrada') }}</flux:heading>
+                                    <flux:text class="mt-1">{{ __('Nenhum registro corresponde à busca ou aos filtros aplicados.') }}</flux:text>
                                     <div class="mt-4">
                                         <flux:button
                                             variant="subtle"
                                             size="sm"
                                             wire:click="resetFilters"
                                         >
-                                            Limpar filtros
+                                            {{ __('Limpar filtros') }}
                                         </flux:button>
                                     </div>
                                 </div>
@@ -723,9 +723,9 @@ new class extends Component
                             <flux:icon :name="$editingId ? 'pencil' : 'computer-desktop'" class="size-5" />
                         </div>
                         <div>
-                            <flux:heading size="lg">{{ $editingId ? 'Editar' : 'Nova' }} Estação</flux:heading>
+                            <flux:heading size="lg">{{ $editingId ? __('Editar') : __('Nova') }} Estação</flux:heading>
                             <flux:text class="mt-0.5 text-sm">
-                                Passo {{ $step }} de 4 · {{ $stationSteps[$step]['label'] }}
+                                {{ __('Passo ') }}{{ $step }}{{ __(' de ') }}4 · {{ $stationSteps[$step]['label'] }}
                             </flux:text>
                         </div>
                     </div>
@@ -735,7 +735,7 @@ new class extends Component
                             variant="ghost"
                             icon="x-mark"
                             size="sm"
-                            aria-label="Fechar"
+                            aria-label="{{ __('Fechar') }}"
                             class="text-zinc-400! hover:text-zinc-800! dark:text-zinc-500! dark:hover:text-white!"
                         />
                     </flux:modal.close>
@@ -754,7 +754,7 @@ new class extends Component
                                             type="button"
                                             @disabled($stepNumber > $step)
                                             wire:click="$wire.set('step', {{ $stepNumber }})"
-                                            aria-label="Ir para o passo {{ $stepNumber }}: {{ $stepMeta['label'] }}"
+                                            aria-label="{{ __('Ir para o passo ') }}{{ $stepNumber }}: {{ $stepMeta['label'] }}"
                                             class="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 {{ $step === $stepNumber ? 'border-transparent bg-neutral-900 text-white shadow-md ring-4 ring-neutral-900/15 dark:bg-white dark:text-neutral-900 dark:ring-white/15' : ($step > $stepNumber ? 'border-transparent bg-emerald-500 text-white' : 'border-zinc-200 bg-white text-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-500') }}"
                                         >
                                             @if ($step > $stepNumber)
@@ -796,26 +796,26 @@ new class extends Component
                                             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                                                 <flux:icon name="identification" class="size-4" />
                                             </div>
-                                            <flux:heading size="sm">Identificação</flux:heading>
+                                            <flux:heading size="sm">{{ __('Identificação') }}</flux:heading>
                                         </div>
-                                        <flux:text class="mt-1">Dados que identificam e classificam a estação.</flux:text>
+                                        <flux:text class="mt-1">{{ __('Dados que identificam e classificam a estação.') }}</flux:text>
 
                                         <div class="mt-4 grid gap-4 sm:grid-cols-2">
                                             <flux:field>
-                                                <flux:label>Site ID</flux:label>
-                                                <flux:input wire:model="site_id" placeholder="Ex: 4G-ABLAJ1" autofocus />
+                                                <flux:label>{{ __('Site ID') }}</flux:label>
+                                                <flux:input wire:model="site_id" placeholder="{{ __('Ex: 4G-ABLAJ1') }}" autofocus />
                                                 <flux:error name="site_id" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Endereço ID</flux:label>
-                                                <flux:input wire:model="address_id" placeholder="Ex: ACABL_0001" />
+                                                <flux:label>{{ __('Endereço ID') }}</flux:label>
+                                                <flux:input wire:model="address_id" placeholder="{{ __('Ex: ACABL_0001') }}" />
                                                 <flux:error name="address_id" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Tipo de elemento</flux:label>
-                                                <flux:select wire:model="element_type" placeholder="Selecione...">
+                                                <flux:label>{{ __('Tipo de elemento') }}</flux:label>
+                                                <flux:select wire:model="element_type" placeholder="{{ __('Selecione...') }}">
                                                     <flux:select.option value="ENODE B">ENODE B</flux:select.option>
                                                     <flux:select.option value="NODE B">NODE B</flux:select.option>
                                                     <flux:select.option value="BTS">BTS</flux:select.option>
@@ -824,8 +824,8 @@ new class extends Component
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Tecnologia</flux:label>
-                                                <flux:select wire:model="technology" placeholder="Selecione...">
+                                                <flux:label>{{ __('Tecnologia') }}</flux:label>
+                                                <flux:select wire:model="technology" placeholder="{{ __('Selecione...') }}">
                                                     <flux:select.option value="LTE">LTE</flux:select.option>
                                                     <flux:select.option value="UMTS">UMTS</flux:select.option>
                                                     <flux:select.option value="GSM">GSM</flux:select.option>
@@ -834,8 +834,8 @@ new class extends Component
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Classificação</flux:label>
-                                                <flux:select wire:model="classification" placeholder="Selecione...">
+                                                <flux:label>{{ __('Classificação') }}</flux:label>
+                                                <flux:select wire:model="classification" placeholder="{{ __('Selecione...') }}">
                                                     <flux:select.option value="RANSHARING">RANSHARING</flux:select.option>
                                                     <flux:select.option value="ACESSO">ACESSO</flux:select.option>
                                                 </flux:select>
@@ -843,10 +843,10 @@ new class extends Component
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Status</flux:label>
-                                                <flux:select wire:model="status" placeholder="Selecione...">
-                                                    <flux:select.option value="Aquisitado">Aquisitado</flux:select.option>
-                                                    <flux:select.option value="Candidato">Candidato</flux:select.option>
+                                                <flux:label>{{ __('Status') }}</flux:label>
+                                                <flux:select wire:model="status" placeholder="{{ __('Selecione...') }}">
+                                                    <flux:select.option value="Aquisitado">{{ __('Aquisitado') }}</flux:select.option>
+                                                    <flux:select.option value="Candidato">{{ __('Candidato') }}</flux:select.option>
                                                 </flux:select>
                                                 <flux:error name="status" />
                                             </flux:field>
@@ -854,7 +854,7 @@ new class extends Component
 
                                         <div class="mt-4 rounded-xl border border-zinc-100 bg-zinc-50/60 p-4 dark:border-zinc-700/60 dark:bg-white/[3%]">
                                             <flux:field>
-                                                <flux:checkbox wire:model="is_active" label="Ativa (disponível para uso)" />
+                                                <flux:checkbox wire:model="is_active" label="{{ __('Ativa (disponível para uso)') }}" />
                                             </flux:field>
                                         </div>
                                     </section>
@@ -866,53 +866,53 @@ new class extends Component
                                             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                                                 <flux:icon name="building-office" class="size-4" />
                                             </div>
-                                            <flux:heading size="sm">Infraestrutura</flux:heading>
+                                            <flux:heading size="sm">{{ __('Infraestrutura') }}</flux:heading>
                                         </div>
-                                        <flux:text class="mt-1">Detentores, contratos e características da infraestrutura.</flux:text>
+                                        <flux:text class="mt-1">{{ __('Detentores, contratos e características da infraestrutura.') }}</flux:text>
 
                                         <div class="mt-4 grid gap-4 sm:grid-cols-2">
                                             <flux:field>
-                                                <flux:label>Detentor da Área</flux:label>
-                                                <flux:input wire:model="area_holder" placeholder="Ex: IHS BRAZIL" />
+                                                <flux:label>{{ __('Detentor da Área') }}</flux:label>
+                                                <flux:input wire:model="area_holder" placeholder="{{ __('Ex: IHS BRAZIL') }}" />
                                                 <flux:error name="area_holder" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Tipo de contrato Infra</flux:label>
-                                                <flux:select wire:model="infra_contract_type" placeholder="Selecione...">
-                                                    <flux:select.option value="Built-to-Suit">Built-to-Suit</flux:select.option>
-                                                    <flux:select.option value="Compartilhado">Compartilhado</flux:select.option>
+                                                <flux:label>{{ __('Tipo de contrato Infra') }}</flux:label>
+                                                <flux:select wire:model="infra_contract_type" placeholder="{{ __('Selecione...') }}">
+                                                    <flux:select.option value="Built-to-Suit">{{ __('Built-to-Suit') }}</flux:select.option>
+                                                    <flux:select.option value="Compartilhado">{{ __('Compartilhado') }}</flux:select.option>
                                                 </flux:select>
                                                 <flux:error name="infra_contract_type" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Detentor de Infra</flux:label>
-                                                <flux:input wire:model="infra_holder" placeholder="Ex: AMERICAN TOWER" />
+                                                <flux:label>{{ __('Detentor de Infra') }}</flux:label>
+                                                <flux:input wire:model="infra_holder" placeholder="{{ __('Ex: AMERICAN TOWER') }}" />
                                                 <flux:error name="infra_holder" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Tipo de Infra</flux:label>
-                                                <flux:input wire:model="infra_type" placeholder="Ex: Greenfield" />
+                                                <flux:label>{{ __('Tipo de Infra') }}</flux:label>
+                                                <flux:input wire:model="infra_type" placeholder="{{ __('Ex: Greenfield') }}" />
                                                 <flux:error name="infra_type" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Tipo de EV</flux:label>
-                                                <flux:input wire:model="ev_type" placeholder="Ex: TORRE METALICA TRIANGULAR" />
+                                                <flux:label>{{ __('Tipo de EV') }}</flux:label>
+                                                <flux:input wire:model="ev_type" placeholder="{{ __('Ex: TORRE METALICA TRIANGULAR') }}" />
                                                 <flux:error name="ev_type" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Fornecedor de EV</flux:label>
-                                                <flux:input wire:model="ev_provider" placeholder="Ex: BRASILSAT" />
+                                                <flux:label>{{ __('Fornecedor de EV') }}</flux:label>
+                                                <flux:input wire:model="ev_provider" placeholder="{{ __('Ex: BRASILSAT') }}" />
                                                 <flux:error name="ev_provider" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Tipo da torre</flux:label>
-                                                <flux:input wire:model="tower_type" placeholder="Opcional" />
+                                                <flux:label>{{ __('Tipo da torre') }}</flux:label>
+                                                <flux:input wire:model="tower_type" placeholder="{{ __('Opcional') }}" />
                                                 <flux:error name="tower_type" />
                                             </flux:field>
                                         </div>
@@ -925,14 +925,14 @@ new class extends Component
                                             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                                                 <flux:icon name="map-pin" class="size-4" />
                                             </div>
-                                            <flux:heading size="sm">Endereço</flux:heading>
+                                            <flux:heading size="sm">{{ __('Endereço') }}</flux:heading>
                                         </div>
-                                        <flux:text class="mt-1">Localização da estação conforme o cadastro do site.</flux:text>
+                                        <flux:text class="mt-1">{{ __('Localização da estação conforme o cadastro do site.') }}</flux:text>
 
                                         <div class="mt-4 grid gap-4 sm:grid-cols-2">
                                             <flux:field>
-                                                <flux:label>Tipo de logradouro</flux:label>
-                                                <flux:select wire:model="street_type" placeholder="Selecione...">
+                                                <flux:label>{{ __('Tipo de logradouro') }}</flux:label>
+                                                <flux:select wire:model="street_type" placeholder="{{ __('Selecione...') }}">
                                                     <flux:select.option value="RUA">RUA</flux:select.option>
                                                     <flux:select.option value="AVENIDA">AVENIDA</flux:select.option>
                                                     <flux:select.option value="RODOVIA">RODOVIA</flux:select.option>
@@ -941,38 +941,38 @@ new class extends Component
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Logradouro</flux:label>
-                                                <flux:input wire:model="street" placeholder="Ex: MANOEL BATISTA DE ARAÚJO" />
+                                                <flux:label>{{ __('Logradouro') }}</flux:label>
+                                                <flux:input wire:model="street" placeholder="{{ __('Ex: MANOEL BATISTA DE ARAÚJO') }}" />
                                                 <flux:error name="street" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Número</flux:label>
-                                                <flux:input wire:model="number" placeholder="Ex: S/N" />
+                                                <flux:label>{{ __('Número') }}</flux:label>
+                                                <flux:input wire:model="number" placeholder="{{ __('Ex: S/N') }}" />
                                                 <flux:error name="number" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Complemento</flux:label>
-                                                <flux:input wire:model="complement" placeholder="Ex: QUADRA 12, LOTE 09" />
+                                                <flux:label>{{ __('Complemento') }}</flux:label>
+                                                <flux:input wire:model="complement" placeholder="{{ __('Ex: QUADRA 12, LOTE 09') }}" />
                                                 <flux:error name="complement" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Bairro</flux:label>
-                                                <flux:input wire:model="neighborhood" placeholder="Ex: CENTRO" />
+                                                <flux:label>{{ __('Bairro') }}</flux:label>
+                                                <flux:input wire:model="neighborhood" placeholder="{{ __('Ex: CENTRO') }}" />
                                                 <flux:error name="neighborhood" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Município</flux:label>
-                                                <flux:input wire:model="city" placeholder="Ex: ASSIS BRASIL" />
+                                                <flux:label>{{ __('Município') }}</flux:label>
+                                                <flux:input wire:model="city" placeholder="{{ __('Ex: ASSIS BRASIL') }}" />
                                                 <flux:error name="city" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Estado</flux:label>
-                                                <flux:select wire:model="state" placeholder="Selecione...">
+                                                <flux:label>{{ __('Estado') }}</flux:label>
+                                                <flux:select wire:model="state" placeholder="{{ __('Selecione...') }}">
                                                     <flux:select.option value="AC">AC</flux:select.option>
                                                     <flux:select.option value="AL">AL</flux:select.option>
                                                     <flux:select.option value="AM">AM</flux:select.option>
@@ -1005,14 +1005,14 @@ new class extends Component
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>CEP</flux:label>
-                                                <flux:input wire:model="cep" placeholder="Ex: 69935000" maxlength="8" />
+                                                <flux:label>{{ __('CEP') }}</flux:label>
+                                                <flux:input wire:model="cep" placeholder="{{ __('Ex: 69935000') }}" maxlength="8" />
                                                 <flux:error name="cep" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Regional</flux:label>
-                                                <flux:input wire:model="regional" placeholder="Ex: TCO" />
+                                                <flux:label>{{ __('Regional') }}</flux:label>
+                                                <flux:input wire:model="regional" placeholder="{{ __('Ex: TCO') }}" />
                                                 <flux:error name="regional" />
                                             </flux:field>
                                         </div>
@@ -1025,44 +1025,44 @@ new class extends Component
                                             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                                                 <flux:icon name="chart-bar" class="size-4" />
                                             </div>
-                                            <flux:heading size="sm">Coordenadas e Dimensionamento</flux:heading>
+                                            <flux:heading size="sm">{{ __('Coordenadas e Dimensionamento') }}</flux:heading>
                                         </div>
-                                        <flux:text class="mt-1">Dados de geolocalização e medidas da estrutura.</flux:text>
+                                        <flux:text class="mt-1">{{ __('Dados de geolocalização e medidas da estrutura.') }}</flux:text>
 
                                         <div class="mt-4 grid gap-4 sm:grid-cols-2">
                                             <flux:field>
-                                                <flux:label>Latitude</flux:label>
-                                                <flux:input wire:model="latitude" placeholder="Ex: -10,925094" />
+                                                <flux:label>{{ __('Latitude') }}</flux:label>
+                                                <flux:input wire:model="latitude" placeholder="{{ __('Ex: -10,925094') }}" />
                                                 <flux:error name="latitude" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Longitude</flux:label>
-                                                <flux:input wire:model="longitude" placeholder="Ex: -69,554056" />
+                                                <flux:label>{{ __('Longitude') }}</flux:label>
+                                                <flux:input wire:model="longitude" placeholder="{{ __('Ex: -69,554056') }}" />
                                                 <flux:error name="longitude" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>External ID (Station ID)</flux:label>
-                                                <flux:input wire:model="external_id" placeholder="Ex: ACR001TM" />
+                                                <flux:label>{{ __('External ID (Station ID)') }}</flux:label>
+                                                <flux:input wire:model="external_id" placeholder="{{ __('Ex: ACR001TM') }}" />
                                                 <flux:error name="external_id" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>AEV Nominal</flux:label>
-                                                <flux:input wire:model="aev_nominal" placeholder="Ex: 0" />
+                                                <flux:label>{{ __('AEV Nominal') }}</flux:label>
+                                                <flux:input wire:model="aev_nominal" placeholder="{{ __('Ex: 0') }}" />
                                                 <flux:error name="aev_nominal" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Área de solo</flux:label>
-                                                <flux:input wire:model="land_area" placeholder="Ex: 0" />
+                                                <flux:label>{{ __('Área de solo') }}</flux:label>
+                                                <flux:input wire:model="land_area" placeholder="{{ __('Ex: 0') }}" />
                                                 <flux:error name="land_area" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Altura da estrutura</flux:label>
-                                                <flux:input wire:model="structure_height" placeholder="Ex: 40" />
+                                                <flux:label>{{ __('Altura da estrutura') }}</flux:label>
+                                                <flux:input wire:model="structure_height" placeholder="{{ __('Ex: 40') }}" />
                                                 <flux:error name="structure_height" />
                                             </flux:field>
                                         </div>
@@ -1073,20 +1073,20 @@ new class extends Component
                                             <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
                                                 <flux:icon name="document-text" class="size-4" />
                                             </div>
-                                            <flux:heading size="sm">Observações</flux:heading>
+                                            <flux:heading size="sm">{{ __('Observações') }}</flux:heading>
                                         </div>
-                                        <flux:text class="mt-1">Anotações e justificativas sobre a estação.</flux:text>
+                                        <flux:text class="mt-1">{{ __('Anotações e justificativas sobre a estação.') }}</flux:text>
 
                                         <div class="mt-4 space-y-4">
                                             <flux:field>
-                                                <flux:label>Observação</flux:label>
-                                                <flux:textarea wire:model="observation" rows="2" placeholder="Opcional" />
+                                                <flux:label>{{ __('Observação') }}</flux:label>
+                                                <flux:textarea wire:model="observation" rows="2" placeholder="{{ __('Opcional') }}" />
                                                 <flux:error name="observation" />
                                             </flux:field>
 
                                             <flux:field>
-                                                <flux:label>Justificativa</flux:label>
-                                                <flux:textarea wire:model="justification" rows="2" placeholder="Opcional" />
+                                                <flux:label>{{ __('Justificativa') }}</flux:label>
+                                                <flux:textarea wire:model="justification" rows="2" placeholder="{{ __('Opcional') }}" />
                                                 <flux:error name="justification" />
                                             </flux:field>
                                         </div>
@@ -1101,7 +1101,7 @@ new class extends Component
                                         variant="subtle"
                                         wire:click="$wire.set('showModal', false)"
                                     >
-                                        Cancelar
+                                        {{ __('Cancelar') }}
                                     </flux:button>
                                 @else
                                     <flux:button
@@ -1110,17 +1110,17 @@ new class extends Component
                                         icon="arrow-left"
                                         wire:click="previousStep"
                                     >
-                                        Voltar
+                                        {{ __('Voltar') }}
                                     </flux:button>
                                 @endif
 
                                 @if ($step < 4)
                                     <flux:button type="button" variant="primary" wire:click="nextStep" icon-trailing="arrow-right">
-                                        Próximo
+                                        {{ __('Próximo') }}
                                     </flux:button>
                                 @else
                                     <flux:button type="submit" variant="primary" icon="check">
-                                        {{ $editingId ? 'Salvar' : 'Criar Estação' }}
+                                        {{ $editingId ? __('Salvar') : __('Criar Estação') }}
                                     </flux:button>
                                 @endif
                             </div>
@@ -1139,8 +1139,8 @@ new class extends Component
                             <flux:icon name="arrow-up-tray" class="size-5" />
                         </div>
                         <div>
-                            <flux:heading size="lg">Importar Estações</flux:heading>
-                            <flux:text class="mt-0.5 text-sm">Importação em massa a partir de planilha Excel.</flux:text>
+                            <flux:heading size="lg">{{ __('Importar Estações') }}</flux:heading>
+                            <flux:text class="mt-0.5 text-sm">{{ __('Importação em massa a partir de planilha Excel.') }}</flux:text>
                         </div>
                     </div>
 
@@ -1149,7 +1149,7 @@ new class extends Component
                             variant="ghost"
                             icon="x-mark"
                             size="sm"
-                            aria-label="Fechar"
+                            aria-label="{{ __('Fechar') }}"
                             class="text-zinc-400! hover:text-zinc-800! dark:text-zinc-500! dark:hover:text-white!"
                         />
                     </flux:modal.close>
@@ -1158,9 +1158,9 @@ new class extends Component
                 <div class="px-6 py-6 sm:px-8 sm:py-8">
                     <div class="rounded-xl border border-zinc-100 bg-zinc-50/60 p-4 dark:border-zinc-700/60 dark:bg-white/[3%]">
                         <flux:text class="text-sm">
-                            Baixe o modelo, preencha e envie o arquivo em formato .xlsx. Registros com o mesmo
-                            <span class="font-medium">Site ID</span> serão atualizados; os demais serão criados.
-                            A linha de exemplo do modelo deve ser removida antes do envio.
+                            {{ __('Baixe o modelo, preencha e envie o arquivo em formato .xlsx. Registros com o mesmo') }}
+                            <span class="font-medium">{{ __('Site ID') }}</span> {{ __('serão atualizados; os demais serão criados.') }}
+                            {{ __('A linha de exemplo do modelo deve ser removida antes do envio.') }}
                         </flux:text>
 
                         <div class="mt-3">
@@ -1170,14 +1170,14 @@ new class extends Component
                                 variant="subtle"
                                 icon="arrow-down-tray"
                             >
-                                Baixar modelo
+                                {{ __('Baixar modelo') }}
                             </flux:button>
                         </div>
                     </div>
 
                     <form wire:submit="importStations" class="mt-6">
                         <flux:field>
-                            <flux:label>Planilha (.xlsx)</flux:label>
+                            <flux:label>{{ __('Planilha (.xlsx)') }}</flux:label>
 
                             <div
                                 x-data="{ dragging: false }"
@@ -1206,8 +1206,8 @@ new class extends Component
                                 <flux:icon name="arrow-up-tray" class="mx-auto size-8 text-zinc-400 dark:text-zinc-500" />
 
                                 <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                                    Arraste e solte o arquivo aqui ou
-                                    <span class="font-medium text-amber-600 hover:underline dark:text-amber-400">clique para selecionar</span>
+                                    {{ __('Arraste e solte o arquivo aqui ou') }}
+                                    <span class="font-medium text-amber-600 hover:underline dark:text-amber-400">{{ __('clique para selecionar') }}</span>
                                 </p>
 
                                 @if ($importFile)
@@ -1224,14 +1224,14 @@ new class extends Component
                             <div class="mt-5 space-y-3">
                                 <div class="flex flex-wrap gap-2">
                                     <flux:badge color="green" size="sm">
-                                        {{ $importResult['created'] }} criadas
+                                        {{ $importResult['created'] }} {{ __('criadas') }}
                                     </flux:badge>
                                     <flux:badge color="blue" size="sm">
-                                        {{ $importResult['updated'] }} atualizadas
+                                        {{ $importResult['updated'] }} {{ __('atualizadas') }}
                                     </flux:badge>
                                     @if (count($importResult['errors']) > 0)
                                         <flux:badge color="red" size="sm">
-                                            {{ count($importResult['errors']) }} erros
+                                            {{ count($importResult['errors']) }} {{ __('erros') }}
                                         </flux:badge>
                                     @endif
                                 </div>
@@ -1241,7 +1241,7 @@ new class extends Component
                                         <ul class="space-y-1 text-sm text-red-600 dark:text-red-300">
                                             @foreach ($importResult['errors'] as $error)
                                                 <li class="flex gap-2">
-                                                    <span class="shrink-0 font-mono text-xs">Linha {{ $error['row'] }}:</span>
+                                                    <span class="shrink-0 font-mono text-xs">{{ __('Linha ') }}{{ $error['row'] }}:</span>
                                                     <span>{{ $error['message'] }}</span>
                                                 </li>
                                             @endforeach
@@ -1253,7 +1253,7 @@ new class extends Component
 
                         <div class="mt-6 flex items-center justify-end gap-3">
                             <flux:button type="submit" variant="primary" icon="arrow-up-tray">
-                                Importar
+                                {{ __('Importar') }}
                             </flux:button>
                         </div>
                     </form>

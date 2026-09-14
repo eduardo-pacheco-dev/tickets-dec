@@ -47,9 +47,9 @@ new class extends Component
 <div class="space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <flux:heading size="lg">Notificações</flux:heading>
+            <flux:heading size="lg">{{ __('Notificações') }}</flux:heading>
             <flux:text class="mt-1">
-                Acompanhe as movimentações dos tickets do sistema.
+                {{ __('Acompanhe as movimentações dos tickets do sistema.') }}
             </flux:text>
         </div>
 
@@ -61,7 +61,7 @@ new class extends Component
                     wire:click="markAllAsRead"
                     data-test="mark-all-read"
                 >
-                    Marcar todas como lidas
+                    {{ __('Marcar todas como lidas') }}
                 </flux:button>
             </div>
         @endif
@@ -72,16 +72,16 @@ new class extends Component
             <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                 <flux:icon name="bell-slash" class="size-6" />
             </div>
-            <flux:heading size="lg" class="mt-4">Nenhuma notificação</flux:heading>
-            <flux:text class="mt-1">As movimentações dos tickets aparecerão aqui conforme forem acontecendo.</flux:text>
+            <flux:heading size="lg" class="mt-4">{{ __('Nenhuma notificação') }}</flux:heading>
+            <flux:text class="mt-1">{{ __('As movimentações dos tickets aparecerão aqui conforme forem acontecendo.') }}</flux:text>
         </flux:card>
     @else
         <flux:card class="overflow-hidden">
             <flux:table bleed :paginate="$this->notifications()">
                 <flux:table.columns>
-                    <flux:table.column scope="col">Notificação</flux:table.column>
-                    <flux:table.column scope="col">Recebida em</flux:table.column>
-                    <flux:table.column scope="col">Status</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Notificação') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Recebida em') }}</flux:table.column>
+                    <flux:table.column scope="col">{{ __('Status') }}</flux:table.column>
                     <flux:table.column scope="col" class="w-px"></flux:table.column>
                 </flux:table.columns>
 
@@ -103,9 +103,9 @@ new class extends Component
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if ($notification->read_at === null)
-                                    <flux:badge color="blue" size="sm">Não lida</flux:badge>
+                                    <flux:badge color="blue" size="sm">{{ __('Não lida') }}</flux:badge>
                                 @else
-                                    <flux:badge size="sm">Lida</flux:badge>
+                                    <flux:badge size="sm">{{ __('Lida') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell align="end">
@@ -115,7 +115,7 @@ new class extends Component
                                     icon-only
                                     icon="arrow-right"
                                     wire:click="openNotification('{{ $notification->id }}')"
-                                    aria-label="Ver ticket da notificação"
+                                    aria-label="{{ __('Ver ticket da notificação') }}"
                                 />
                             </flux:table.cell>
                         </flux:table.row>
@@ -126,7 +126,7 @@ new class extends Component
                                     <div class="mx-auto flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                                         <flux:icon name="bell-slash" class="size-5" />
                                     </div>
-                                    <flux:heading size="sm" class="mt-3">Nenhuma notificação</flux:heading>
+                                    <flux:heading size="sm" class="mt-3">{{ __('Nenhuma notificação') }}</flux:heading>
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>
