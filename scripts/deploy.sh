@@ -30,24 +30,13 @@ install -d -o www-data -g www-data storage storage/logs storage/framework/cache 
 chmod -R 775 storage bootstrap/cache
 
 # 2. Atualizar o código
-log "Atualizando código (git pull)..."
-if [ -n "$(git status --porcelain)" ]; then
-    log "Há alterações locais. Fazendo stash..."
-    git stash push -m "auto-deploy-$(date +%s)"
-    STASHED=1
-else
-    STASHED=0
-fi
-
-git pull --rebase --ff-only
-
-if [ "$STASHED" = "1" ]; then
-    log "Restaurando alterações locais (stash pop)..."
-    git stash pop || log "AVISO: conflitos no stash pop - revise manualmente."
-fi
+log "Atualizando código (git reset --hard origin/main)..."
+git fetch origin main
+git reset --hard origin/main
 
 # 3. Dependências PHP
 log "Instalando dependências Composer..."
+export COMPOSER_ALLOW_SUPERUSER=1
 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # 4. Dependências JS e build
