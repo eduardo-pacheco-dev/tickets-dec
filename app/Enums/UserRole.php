@@ -36,7 +36,7 @@ enum UserRole: string
 
     public function canManageTickets(): bool
     {
-        return in_array($this, [self::Admin, self::Operator]);
+        return in_array($this, [self::Admin, self::Operator, self::Supervisor]);
     }
 
     public function canViewTickets(): bool

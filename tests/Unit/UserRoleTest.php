@@ -32,10 +32,10 @@ test('admin can manage users', function () {
     expect(UserRole::Client->canManageUsers())->toBeFalse();
 });
 
-test('admin and operator can manage tickets', function () {
+test('admin, operator, and supervisor can manage tickets', function () {
     expect(UserRole::Admin->canManageTickets())->toBeTrue();
     expect(UserRole::Operator->canManageTickets())->toBeTrue();
-    expect(UserRole::Supervisor->canManageTickets())->toBeFalse();
+    expect(UserRole::Supervisor->canManageTickets())->toBeTrue();
     expect(UserRole::Client->canManageTickets())->toBeFalse();
 });
 

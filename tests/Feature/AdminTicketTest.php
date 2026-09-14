@@ -150,16 +150,21 @@ it('saves an admin response to a ticket for operator users', function () {
     ]);
 });
 
-it('denies supervisor from saving admin response', function () {
+it('saves an admin response to a ticket for supervisor users', function () {
     $user = User::factory()->supervisor()->create();
     $ticket = Ticket::factory()->create();
 
     $this->actingAs($user);
 
     Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
-        ->set('admin_response', 'Tentativa de resposta.')
+        ->set('admin_response', 'Resposta do supervisor.')
         ->call('saveResponse')
-        ->assertForbidden();
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('tickets', [
+        'id' => $ticket->id,
+        'admin_response' => 'Resposta do supervisor.',
+    ]);
 });
 
 it('requires an admin response to save', function () {
@@ -190,7 +195,7 @@ it('updates the ticket status for admin users', function () {
     ]);
 });
 
-it('denies supervisor from updating ticket status', function () {
+it('updates the ticket status for supervisor users', function () {
     $user = User::factory()->supervisor()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
 
@@ -199,5 +204,10 @@ it('denies supervisor from updating ticket status', function () {
     Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
         ->set('new_status', 'em_andamento')
         ->call('updateStatus')
-        ->assertForbidden();
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('tickets', [
+        'id' => $ticket->id,
+        'status' => 'em_andamento',
+    ]);
 });
