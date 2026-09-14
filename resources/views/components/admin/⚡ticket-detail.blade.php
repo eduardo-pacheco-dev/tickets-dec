@@ -14,19 +14,47 @@ new class extends Component
 {
     public Ticket $ticket;
     public string $admin_response = '';
-    public ?string $new_status = null;
 
     public function mount(Ticket $ticket): void
     {
         $this->ticket = $ticket;
         $this->admin_response = $this->ticket->admin_response ?? '';
-        $this->new_status = $this->ticket->status;
     }
 
     #[Computed]
     public function statuses(): \Illuminate\Database\Eloquent\Collection
     {
         return TicketStatus::query()->active()->orderBy('sort_order')->orderBy('label')->get();
+    }
+
+    #[Computed]
+    public function currentIndex(): int
+    {
+        return $this->statuses->search(fn (TicketStatus $status) => $status->name === $this->ticket->status);
+    }
+
+    #[Computed]
+    public function nextStatus(): ?TicketStatus
+    {
+        $index = $this->currentIndex;
+
+        if ($index === false) {
+            return $this->statuses->first();
+        }
+
+        return $this->statuses->get($index + 1);
+    }
+
+    #[Computed]
+    public function previousStatus(): ?TicketStatus
+    {
+        $index = $this->currentIndex;
+
+        if ($index === false) {
+            return null;
+        }
+
+        return $this->statuses->get($index - 1);
     }
 
     public function saveResponse(): void
@@ -50,16 +78,41 @@ new class extends Component
         $this->dispatch('response-saved');
     }
 
-    public function updateStatus(): void
+    public function advanceStatus(): void
     {
         $this->ensureCanManageTickets();
 
-        $this->validate([
-            'new_status' => ['required', 'string', 'exists:ticket_statuses,name'],
-        ]);
+        if (! $this->nextStatus) {
+            return;
+        }
 
         $oldStatus = $this->ticket->status;
-        $newStatus = $this->new_status;
+        $newStatus = $this->nextStatus->name;
+
+        $this->ticket->update([
+            'status' => $newStatus,
+        ]);
+
+        $this->notifyStaff(new TicketStatusUpdatedNotification(
+            $this->ticket,
+            $oldStatus,
+            $newStatus,
+            auth()->user()->name,
+        ));
+
+        $this->dispatch('status-updated');
+    }
+
+    public function regressStatus(): void
+    {
+        $this->ensureCanManageTickets();
+
+        if (! $this->previousStatus) {
+            return;
+        }
+
+        $oldStatus = $this->ticket->status;
+        $newStatus = $this->previousStatus->name;
 
         $this->ticket->update([
             'status' => $newStatus,
@@ -168,19 +221,47 @@ new class extends Component
             @if (auth()->user()->role->canManageTickets())
                 <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
                     <flux:heading size="sm" class="mb-4">{{ __('Alterar Status') }}</flux:heading>
-                    <form wire:submit="updateStatus" class="space-y-4">
-                        <flux:select wire:model="new_status">
-                            @foreach ($this->statuses as $status)
-                                <flux:select.option value="{{ $status->name }}">
-                                    {{ $status->label }}
-                                </flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:error name="new_status" />
-                        <flux:button type="submit" variant="primary" class="w-full">
-                            {{ __('Atualizar Status') }}
+
+                    <div class="flex items-center justify-between gap-2">
+                        <flux:button
+                            variant="subtle"
+                            icon="arrow-left"
+                            wire:click="regressStatus"
+                            :disabled="! $this->previousStatus"
+                            :aria-label="__('Status anterior')"
+                        >
+                            {{ __('Voltar') }}
                         </flux:button>
-                    </form>
+
+                        <div class="flex flex-col items-center gap-1">
+                            <flux:badge color="{{ $this->ticket->statusColor() }}" size="md">
+                                {{ $this->ticket->statusLabel() }}
+                            </flux:badge>
+                            @if ($this->nextStatus)
+                                <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
+                                    {{ __('Próximo:') }} {{ $this->nextStatus->label }}
+                                </flux:text>
+                            @else
+                                <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
+                                    {{ __('Status final') }}
+                                </flux:text>
+                            @endif
+                        </div>
+
+                        <flux:button
+                            variant="primary"
+                            icon-trailing="arrow-right"
+                            wire:click="advanceStatus"
+                            :disabled="! $this->nextStatus"
+                            :aria-label="__('Avançar status')"
+                        >
+                            {{ __('Avançar') }}
+                        </flux:button>
+                    </div>
+
+                    <flux:text class="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
+                        {{ __('O status avança em sequência conforme a ordem definida em Relatórios.') }}
+                    </flux:text>
                 </div>
             @endif
 

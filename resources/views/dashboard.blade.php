@@ -220,7 +220,7 @@ $greeting = now()->hour >= 18
                                                 <flux:table.cell>{{ $ticket->site_id }}</flux:table.cell>
                                                 <flux:table.cell>{{ $ticket->technician_name }}</flux:table.cell>
                                                 <flux:table.cell>
-                                                    <flux:badge color="{{ $ticket->status->color() }}" size="sm">{{ $ticket->status->label() }}</flux:badge>
+<flux:badge color="{{ $ticket->statusColor() }}" size="sm">{{ $ticket->statusLabel() }}</flux:badge>
                                                 </flux:table.cell>
                                                 <flux:table.cell class="text-zinc-500 dark:text-zinc-400">{{ $ticket->created_at->format('d/m/Y H:i') }}</flux:table.cell>
                                                 <flux:table.cell class="text-right">
@@ -270,7 +270,7 @@ $greeting = now()->hour >= 18
                                             <p class="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $ticket->technician_name }}</p>
                                         </div>
                                         <div class="flex shrink-0 items-center gap-2">
-                                            <flux:badge color="{{ $ticket->status->color() }}" size="sm">{{ $ticket->status->label() }}</flux:badge>
+                                            <flux:badge color="{{ $ticket->statusColor() }}" size="sm">{{ $ticket->statusLabel() }}</flux:badge>
                                         </div>
                                     </a>
                                 @endforeach

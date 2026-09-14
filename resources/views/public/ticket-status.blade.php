@@ -94,8 +94,8 @@
                                 <flux:heading size="lg" class="font-mono">{{ $ticket->tracking_code }}</flux:heading>
                             </div>
                         </div>
-                        <flux:badge color="{{ $ticket->status->color() }}" size="lg">
-                            {{ $ticket->status->label() }}
+                        <flux:badge color="{{ $ticket->statusColor() }}" size="lg">
+                            {{ $ticket->statusLabel() }}
                         </flux:badge>
                     </div>
 

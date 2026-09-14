@@ -54,13 +54,13 @@ it('notifies the rest of the staff when a ticket status is updated', function ()
     $operator = User::factory()->operator()->create();
     $supervisor = User::factory()->supervisor()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
-    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento']);
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento', 'sort_order' => 2]);
 
     $this->actingAs($admin);
 
     Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
-        ->set('new_status', 'em_andamento')
-        ->call('updateStatus')
+        ->call('advanceStatus')
         ->assertHasNoErrors();
 
     expect($operator->notifications)->toHaveCount(1);
@@ -80,13 +80,13 @@ it('emails the rest of the staff when a ticket status is updated', function () {
     $admin = User::factory()->admin()->create();
     $operator = User::factory()->operator()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
-    TicketStatus::factory()->create(['name' => 'resolvido', 'label' => 'Resolvido']);
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'resolvido', 'label' => 'Resolvido', 'sort_order' => 2]);
 
     $this->actingAs($admin);
 
     Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
-        ->set('new_status', 'resolvido')
-        ->call('updateStatus')
+        ->call('advanceStatus')
         ->assertHasNoErrors();
 
     Notification::assertSentTo($operator, TicketStatusUpdatedNotification::class);

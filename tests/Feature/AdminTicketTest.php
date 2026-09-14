@@ -179,16 +179,16 @@ it('requires an admin response to save', function () {
         ->assertHasErrors(['admin_response']);
 });
 
-it('updates the ticket status for admin users', function () {
+it('advances the ticket status for admin users', function () {
     $user = User::factory()->admin()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
-    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento']);
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento', 'sort_order' => 2]);
 
     $this->actingAs($user);
 
     Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
-        ->set('new_status', 'em_andamento')
-        ->call('updateStatus')
+        ->call('advanceStatus')
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('tickets', [
@@ -197,16 +197,51 @@ it('updates the ticket status for admin users', function () {
     ]);
 });
 
-it('updates the ticket status for supervisor users', function () {
-    $user = User::factory()->supervisor()->create();
-    $ticket = Ticket::factory()->create(['status' => 'aberto']);
-    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento']);
+it('does not advance the ticket status beyond the last one', function () {
+    $user = User::factory()->admin()->create();
+    $ticket = Ticket::factory()->create(['status' => 'resolvido']);
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'resolvido', 'label' => 'Resolvido', 'sort_order' => 2]);
 
     $this->actingAs($user);
 
     Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
-        ->set('new_status', 'em_andamento')
-        ->call('updateStatus')
+        ->call('advanceStatus');
+
+    $this->assertDatabaseHas('tickets', [
+        'id' => $ticket->id,
+        'status' => 'resolvido',
+    ]);
+});
+
+it('regresses the ticket status for admin users', function () {
+    $user = User::factory()->admin()->create();
+    $ticket = Ticket::factory()->create(['status' => 'em_andamento']);
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento', 'sort_order' => 2]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
+        ->call('regressStatus')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('tickets', [
+        'id' => $ticket->id,
+        'status' => 'aberto',
+    ]);
+});
+
+it('advances the ticket status for supervisor users', function () {
+    $user = User::factory()->supervisor()->create();
+    $ticket = Ticket::factory()->create(['status' => 'aberto']);
+    TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Aberto', 'sort_order' => 1]);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento', 'sort_order' => 2]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-detail', ['ticket' => $ticket])
+        ->call('advanceStatus')
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('tickets', [
