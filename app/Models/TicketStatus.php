@@ -42,6 +42,7 @@ class TicketStatus extends Model
 
     /**
      * @param  Builder<static>  $query
+     * @return Builder<static>
      */
     public function scopeActive(Builder $query): Builder
     {
@@ -72,6 +73,9 @@ class TicketStatus extends Model
         return $this->hasMany(Ticket::class, 'status', 'name');
     }
 
+    /**
+     * @return array<string, string>
+     */
     public static function colorOptions(): array
     {
         return [

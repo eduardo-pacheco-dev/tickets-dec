@@ -22,11 +22,13 @@ use Illuminate\Support\Str;
  * @property string $technician_name
  * @property string $report_description
  * @property bool $checked_in
- * @property TicketStatus $status
+ * @property string $status
  * @property string|null $admin_response
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, ReportType> $reportTypes
+ * @property-read TicketStatusModel|null $statusModel
+ * @property-read Collection<int, TicketStatusHistory> $statusHistories
  */
 #[Fillable(['site_id', 'technician_name', 'report_description', 'checked_in', 'status', 'admin_response'])]
 class Ticket extends Model
@@ -41,16 +43,25 @@ class Ticket extends Model
         ];
     }
 
+    /**
+     * @return BelongsToMany<ReportType, $this>
+     */
     public function reportTypes(): BelongsToMany
     {
         return $this->belongsToMany(ReportType::class)->withTimestamps();
     }
 
+    /**
+     * @return BelongsTo<TicketStatusModel, $this>
+     */
     public function statusModel(): BelongsTo
     {
         return $this->belongsTo(TicketStatusModel::class, 'status', 'name');
     }
 
+    /**
+     * @return HasMany<TicketStatusHistory, $this>
+     */
     public function statusHistories(): HasMany
     {
         return $this->hasMany(TicketStatusHistory::class)->latest();
@@ -58,14 +69,14 @@ class Ticket extends Model
 
     public function statusLabel(): string
     {
-        return $this->statusModel?->label
+        return $this->statusModel->label
             ?? TicketStatus::tryFrom($this->status)?->label()
             ?? $this->status;
     }
 
     public function statusColor(): string
     {
-        return $this->statusModel?->color
+        return $this->statusModel->color
             ?? TicketStatus::tryFrom($this->status)?->color()
             ?? 'zinc';
     }

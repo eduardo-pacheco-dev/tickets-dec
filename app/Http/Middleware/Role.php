@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\UserRole;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,13 +14,13 @@ class Role
     {
         $user = $request->user();
 
-        if (! $user || ! $user->role) {
+        if (! $user instanceof User) {
             abort(403);
         }
 
         $allowed = array_map(fn (string $role) => UserRole::from($role), $roles);
 
-        if (! in_array($user->role, $allowed)) {
+        if (! in_array($user->role, $allowed, true)) {
             abort(403);
         }
 

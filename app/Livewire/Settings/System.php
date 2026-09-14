@@ -21,6 +21,9 @@ class System extends Component
         $this->timezone = Setting::get('app.timezone', config('app.timezone', 'UTC'));
     }
 
+    /**
+     * @return array<string, string>
+     */
     #[Computed]
     public function timezones(): array
     {

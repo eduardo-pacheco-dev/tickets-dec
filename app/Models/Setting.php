@@ -24,7 +24,7 @@ class Setting extends Model
     {
         $setting = static::query()->where('key', $key)->first();
 
-        return $setting?->value ?? $default;
+        return $setting->value ?? $default;
     }
 
     public static function set(string $key, ?string $value): void
@@ -37,6 +37,7 @@ class Setting extends Model
 
     /**
      * @param  Builder<static>  $query
+     * @return Builder<static>
      */
     public function scopeByName(Builder $query, string $key): Builder
     {

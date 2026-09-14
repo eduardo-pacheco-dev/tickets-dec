@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
@@ -37,7 +38,7 @@ class TicketResponseSavedNotification extends Notification
         ];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(User $notifiable): MailMessage
     {
         $mail = (new MailMessage)
             ->subject('Nova resposta no ticket '.$this->ticket->tracking_code)
@@ -53,7 +54,7 @@ class TicketResponseSavedNotification extends Notification
         return $mail;
     }
 
-    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    public function toWebPush(User $notifiable, Notification $notification): WebPushMessage
     {
         $body = (string) str($this->response)->limit(120);
 

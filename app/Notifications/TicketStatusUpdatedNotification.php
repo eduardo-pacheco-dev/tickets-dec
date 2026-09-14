@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Ticket;
 use App\Models\TicketStatus;
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
@@ -36,7 +37,7 @@ class TicketStatusUpdatedNotification extends Notification
     /**
      * @return array<string, mixed>
      */
-    public function toDatabase(object $notifiable): array
+    public function toDatabase(User $notifiable): array
     {
         return [
             'ticket_id' => $this->ticket->id,
@@ -48,7 +49,7 @@ class TicketStatusUpdatedNotification extends Notification
         ];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(User $notifiable): MailMessage
     {
         $mail = (new MailMessage)
             ->subject('Ticket '.$this->ticket->tracking_code.' atualizado')
@@ -63,7 +64,7 @@ class TicketStatusUpdatedNotification extends Notification
         return $mail;
     }
 
-    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    public function toWebPush(User $notifiable, Notification $notification): WebPushMessage
     {
         $body = 'Status: '.$this->label($this->oldStatus).' → '.$this->label($this->newStatus).'.';
 
@@ -85,7 +86,7 @@ class TicketStatusUpdatedNotification extends Notification
     /**
      * @return array<string, mixed>
      */
-    public function toArray(object $notifiable): array
+    public function toArray(User $notifiable): array
     {
         return $this->toDatabase($notifiable);
     }

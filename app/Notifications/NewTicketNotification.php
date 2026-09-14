@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
@@ -34,7 +35,7 @@ class NewTicketNotification extends Notification
         ];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(User $notifiable): MailMessage
     {
         return (new MailMessage)
             ->subject('Novo ticket '.$this->ticket->tracking_code)
@@ -45,7 +46,7 @@ class NewTicketNotification extends Notification
             ->action('Ver ticket', route('admin.tickets.show', $this->ticket));
     }
 
-    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    public function toWebPush(User $notifiable, Notification $notification): WebPushMessage
     {
         return (new WebPushMessage)
             ->title('Novo ticket '.$this->ticket->tracking_code)

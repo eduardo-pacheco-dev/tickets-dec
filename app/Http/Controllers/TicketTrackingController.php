@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class TicketTrackingController extends Controller
 {
-    public function show(Request $request)
+    public function show(Request $request): View
     {
         $query = trim((string) $request->query('q'));
 

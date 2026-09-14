@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\ReportTypeFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,12 +35,19 @@ class ReportType extends Model
         ];
     }
 
+    /**
+     * @return BelongsToMany<Ticket, $this>
+     */
     public function tickets(): BelongsToMany
     {
         return $this->belongsToMany(Ticket::class)->withTimestamps();
     }
 
-    public function scopeActive($query)
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }

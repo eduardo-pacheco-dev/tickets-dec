@@ -57,6 +57,10 @@ class User extends Authenticatable
             : $initials;
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     public function scopeTicketStaff(Builder $query): Builder
     {
         return $query->whereIn('role', [
