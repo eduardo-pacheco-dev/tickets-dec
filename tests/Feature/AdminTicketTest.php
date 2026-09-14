@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Ticket;
+use App\Models\TicketStatus;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -181,6 +182,7 @@ it('requires an admin response to save', function () {
 it('updates the ticket status for admin users', function () {
     $user = User::factory()->admin()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento']);
 
     $this->actingAs($user);
 
@@ -198,6 +200,7 @@ it('updates the ticket status for admin users', function () {
 it('updates the ticket status for supervisor users', function () {
     $user = User::factory()->supervisor()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento']);
 
     $this->actingAs($user);
 

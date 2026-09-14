@@ -1,90 +1,189 @@
 <?php
 
 use App\Models\Ticket;
+use App\Models\TicketStatus;
+use App\Models\User;
+use Livewire\Livewire;
 
-it('renders the public ticket status page', function () {
-    $response = $this->get(route('tickets.status'));
-
-    $response->assertOk();
-    $response->assertSee('Acompanhar Ticket - '.config('app.name'), false);
+it('redirects guests away from the reports page', function () {
+    $this->get(route('admin.report-types.index'))->assertRedirect(route('login'));
 });
 
-it('links to the ticket opening form', function () {
-    $response = $this->get(route('tickets.status'));
+it('renders the ticket statuses tab for admin users', function () {
+    $user = User::factory()->admin()->create();
 
-    $response->assertOk()
-        ->assertSee(route('home'))
-        ->assertSee('Abrir Ticket');
-});
+    $this->actingAs($user);
 
-it('does not render the admin sidebar layout on the status page', function () {
-    $response = $this->get(route('tickets.status'));
-
-    $response->assertOk();
-    $response->assertSee('Acompanhar Ticket');
-    $response->assertDontSee('Administração');
-});
-
-it('does not require a livewire endpoint for the search', function () {
-    $ticket = Ticket::factory()->create();
-
-    $this->get(route('tickets.status', ['q' => $ticket->tracking_code]))
-        ->assertOk();
-});
-
-it('displays the ticket status when a valid code is provided', function () {
-    $ticket = Ticket::factory()->create();
-
-    $this->get(route('tickets.status', ['q' => $ticket->tracking_code]))
+    $this->get(route('admin.report-types.index'))
         ->assertOk()
-        ->assertSee($ticket->tracking_code);
+        ->assertSee('Status de Tickets');
 });
 
-it('finds tickets by site id', function () {
-    $ticket = Ticket::factory()->create(['site_id' => 'SITE-789']);
+it('denies non-admin users from the reports page', function () {
+    $user = User::factory()->operator()->create();
 
-    $this->get(route('tickets.status', ['q' => 'SITE-789']))
-        ->assertOk()
-        ->assertSee($ticket->tracking_code);
+    $this->actingAs($user);
+
+    $this->get(route('admin.report-types.index'))->assertForbidden();
 });
 
-it('finds tickets by a partial site id', function () {
-    $ticket = Ticket::factory()->create(['site_id' => 'SITE-789']);
+it('creates a ticket status', function () {
+    $user = User::factory()->admin()->create();
 
-    $this->get(route('tickets.status', ['q' => 'SITE-7']))
-        ->assertOk()
-        ->assertSee($ticket->tracking_code);
-});
+    $this->actingAs($user);
 
-it('lists all tickets for a matching site', function () {
-    $older = Ticket::factory()->create([
-        'site_id' => 'SITE-789',
-        'created_at' => now()->subDay(),
+    Livewire::test('admin/ticket-status-list')
+        ->call('openCreate')
+        ->set('name', 'em_analise')
+        ->set('label', 'Em Análise')
+        ->set('color', 'blue')
+        ->set('sort_order', 1)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('ticket_statuses', [
+        'name' => 'em_analise',
+        'label' => 'Em Análise',
+        'color' => 'blue',
+        'sort_order' => 1,
+        'is_active' => true,
     ]);
-    $newer = Ticket::factory()->create(['site_id' => 'SITE-789']);
-
-    $this->get(route('tickets.status', ['q' => 'SITE-789']))
-        ->assertOk()
-        ->assertSee($newer->tracking_code)
-        ->assertSee($older->tracking_code);
 });
 
-it('shows an error when no ticket is found', function () {
-    $this->get(route('tickets.status', ['q' => 'TK-NOTFOUND']))
-        ->assertOk()
-        ->assertSee('Nenhum ticket encontrado para o código ou site informado.');
+it('validates ticket status fields are required', function () {
+    $user = User::factory()->admin()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('openCreate')
+        ->call('save')
+        ->assertHasErrors(['name', 'label']);
+
+    $this->assertDatabaseCount('ticket_statuses', 0);
 });
 
-it('shows an error when the search is empty', function () {
-    $this->get(route('tickets.status').'?q=')
-        ->assertOk()
-        ->assertSee('Por favor, insira um código de acompanhamento ou o ID do site.');
+it('rejects an invalid ticket status name', function () {
+    $user = User::factory()->admin()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('openCreate')
+        ->set('name', 'Nome Inválido!')
+        ->set('label', 'Nome Inválido')
+        ->set('color', 'blue')
+        ->call('save')
+        ->assertHasErrors(['name']);
+
+    $this->assertDatabaseCount('ticket_statuses', 0);
 });
 
-it('is case-insensitive when searching for a tracking code', function () {
-    $ticket = Ticket::factory()->create(['tracking_code' => 'TK-ABC123']);
+it('rejects a duplicate ticket status name', function () {
+    $user = User::factory()->admin()->create();
+    TicketStatus::factory()->create(['name' => 'em_analise']);
 
-    $this->get(route('tickets.status', ['q' => 'tk-abc123']))
-        ->assertOk()
-        ->assertSee($ticket->tracking_code);
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('openCreate')
+        ->set('name', 'em_analise')
+        ->set('label', 'Em Análise')
+        ->set('color', 'blue')
+        ->call('save')
+        ->assertHasErrors(['name']);
+
+    $this->assertDatabaseCount('ticket_statuses', 1);
+});
+
+it('edits a ticket status', function () {
+    $user = User::factory()->admin()->create();
+    $status = TicketStatus::factory()->create(['label' => 'Aberto']);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('openEdit', $status->id)
+        ->set('label', 'Em Atendimento')
+        ->set('color', 'purple')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('ticket_statuses', [
+        'id' => $status->id,
+        'label' => 'Em Atendimento',
+        'color' => 'purple',
+    ]);
+});
+
+it('does not allow changing the name of a status in use', function () {
+    $user = User::factory()->admin()->create();
+    $status = TicketStatus::factory()->create(['name' => 'aberto']);
+    Ticket::factory()->create(['status' => 'aberto']);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('openEdit', $status->id)
+        ->set('name', 'em_analise')
+        ->call('save')
+        ->assertHasErrors(['name']);
+
+    $this->assertDatabaseHas('ticket_statuses', ['id' => $status->id, 'name' => 'aberto']);
+});
+
+it('toggles a ticket status active state', function () {
+    $user = User::factory()->admin()->create();
+    $status = TicketStatus::factory()->create(['is_active' => true]);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('toggleActive', $status->id);
+
+    $this->assertDatabaseHas('ticket_statuses', [
+        'id' => $status->id,
+        'is_active' => false,
+    ]);
+});
+
+it('deletes a ticket status not in use', function () {
+    $user = User::factory()->admin()->create();
+    $status = TicketStatus::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('delete', $status->id);
+
+    $this->assertDatabaseMissing('ticket_statuses', ['id' => $status->id]);
+});
+
+it('does not delete a ticket status in use', function () {
+    $user = User::factory()->admin()->create();
+    $status = TicketStatus::factory()->create(['name' => 'aberto']);
+    Ticket::factory()->create(['status' => 'aberto']);
+
+    $this->actingAs($user);
+
+    Livewire::test('admin/ticket-status-list')
+        ->call('delete', $status->id);
+
+    $this->assertDatabaseHas('ticket_statuses', ['id' => $status->id]);
+});
+
+it('resolves the ticket status label and color from the database', function () {
+    $status = TicketStatus::factory()->create(['name' => 'aberto', 'label' => 'Em Análise', 'color' => 'purple']);
+    $ticket = Ticket::factory()->create(['status' => 'aberto']);
+
+    expect($ticket->statusLabel())->toBe('Em Análise');
+    expect($ticket->statusColor())->toBe('purple');
+    expect($ticket->statusModel->is($status))->toBeTrue();
+});
+
+it('falls back to the default status label when not in the database', function () {
+    $ticket = Ticket::factory()->create(['status' => 'resolvido']);
+
+    expect($ticket->statusLabel())->toBe('Resolvido');
+    expect($ticket->statusColor())->toBe('green');
 });

@@ -82,7 +82,7 @@ it('sets a default status of aberto when no status is provided', function () {
         ->call('submit');
 
     $ticket = Ticket::first();
-    expect($ticket->status->value)->toBe('aberto');
+    expect($ticket->status)->toBe('aberto');
 });
 
 it('shows copy and tracking buttons after creating a ticket', function () {

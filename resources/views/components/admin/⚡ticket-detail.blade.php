@@ -1,12 +1,13 @@
 <?php
 
-use App\Enums\TicketStatus;
 use App\Models\Ticket;
+use App\Models\TicketStatus;
 use App\Models\User;
 use App\Notifications\TicketResponseSavedNotification;
 use App\Notifications\TicketStatusUpdatedNotification;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -19,7 +20,13 @@ new class extends Component
     {
         $this->ticket = $ticket;
         $this->admin_response = $this->ticket->admin_response ?? '';
-        $this->new_status = $this->ticket->status->value;
+        $this->new_status = $this->ticket->status;
+    }
+
+    #[Computed]
+    public function statuses(): \Illuminate\Database\Eloquent\Collection
+    {
+        return TicketStatus::query()->active()->orderBy('sort_order')->orderBy('label')->get();
     }
 
     public function saveResponse(): void
@@ -48,20 +55,20 @@ new class extends Component
         $this->ensureCanManageTickets();
 
         $this->validate([
-            'new_status' => ['required', 'string'],
+            'new_status' => ['required', 'string', 'exists:ticket_statuses,name'],
         ]);
 
-        $status = TicketStatus::from($this->new_status);
         $oldStatus = $this->ticket->status;
+        $newStatus = $this->new_status;
 
         $this->ticket->update([
-            'status' => $status,
+            'status' => $newStatus,
         ]);
 
         $this->notifyStaff(new TicketStatusUpdatedNotification(
             $this->ticket,
             $oldStatus,
-            $status,
+            $newStatus,
             auth()->user()->name,
         ));
 
@@ -96,8 +103,8 @@ new class extends Component
             {{ __('Voltar') }}
         </flux:button>
         <flux:heading size="lg">{{ __('Ticket') }} {{ $this->ticket->tracking_code }}</flux:heading>
-        <flux:badge color="{{ $this->ticket->status->color() }}">
-            {{ $this->ticket->status->label() }}
+        <flux:badge color="{{ $this->ticket->statusColor() }}">
+            {{ $this->ticket->statusLabel() }}
         </flux:badge>
     </div>
 
@@ -163,9 +170,9 @@ new class extends Component
                     <flux:heading size="sm" class="mb-4">{{ __('Alterar Status') }}</flux:heading>
                     <form wire:submit="updateStatus" class="space-y-4">
                         <flux:select wire:model="new_status">
-                            @foreach (TicketStatus::cases() as $status)
-                                <flux:select.option value="{{ $status->value }}">
-                                    {{ $status->label() }}
+                            @foreach ($this->statuses as $status)
+                                <flux:select.option value="{{ $status->name }}">
+                                    {{ $status->label }}
                                 </flux:select.option>
                             @endforeach
                         </flux:select>

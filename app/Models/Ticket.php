@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Enums\TicketStatus;
+use App\Models\TicketStatus as TicketStatusModel;
 use Database\Factories\TicketFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -34,7 +36,6 @@ class Ticket extends Model
     protected function casts(): array
     {
         return [
-            'status' => TicketStatus::class,
             'checked_in' => 'boolean',
         ];
     }
@@ -42,6 +43,25 @@ class Ticket extends Model
     public function reportTypes(): BelongsToMany
     {
         return $this->belongsToMany(ReportType::class)->withTimestamps();
+    }
+
+    public function statusModel(): BelongsTo
+    {
+        return $this->belongsTo(TicketStatusModel::class, 'status', 'name');
+    }
+
+    public function statusLabel(): string
+    {
+        return $this->statusModel?->label
+            ?? TicketStatus::tryFrom($this->status)?->label()
+            ?? $this->status;
+    }
+
+    public function statusColor(): string
+    {
+        return $this->statusModel?->color
+            ?? TicketStatus::tryFrom($this->status)?->color()
+            ?? 'zinc';
     }
 
     protected static function booted(): void

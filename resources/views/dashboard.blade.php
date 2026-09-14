@@ -2,21 +2,32 @@
 
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
+use App\Models\TicketStatus as TicketStatusModel;
 use App\Models\User;
 
 $user = auth()->user();
 $role = $user->role;
 
+$statusCounts = TicketStatusModel::query()
+    ->orderBy('sort_order')
+    ->get()
+    ->mapWithKeys(fn (TicketStatusModel $status) => [
+        $status->name => Ticket::where('status', $status->name)->count(),
+    ]);
+
 $counts = [
     'total' => Ticket::count(),
-    'aberto' => Ticket::where('status', TicketStatus::Aberto)->count(),
-    'em_andamento' => Ticket::where('status', TicketStatus::EmAndamento)->count(),
-    'resolvido' => Ticket::where('status', TicketStatus::Resolvido)->count(),
+    ...$statusCounts,
 ];
 
 $recentTickets = Ticket::latest()->take(8)->get();
 
-$pending = Ticket::whereIn('status', [TicketStatus::Aberto, TicketStatus::EmAndamento])
+$activeStatusNames = TicketStatusModel::query()
+    ->active()
+    ->pluck('name')
+    ->all();
+
+$pending = Ticket::whereIn('status', $activeStatusNames)
     ->latest()
     ->take(8)
     ->get();
@@ -32,31 +43,25 @@ $stats = [
         'href' => route('admin.tickets.index'),
         'tone' => 'neutral',
     ],
-    [
-        'label' => __('Abertos'),
-        'count' => $counts['aberto'],
-        'icon' => 'exclamation-triangle',
-        'href' => route('admin.tickets.index', ['status' => 'aberto']),
-        'tone' => 'amber',
-    ],
-    [
-        'label' => __('Em andamento'),
-        'count' => $counts['em_andamento'],
-        'icon' => 'bolt',
-        'href' => route('admin.tickets.index', ['status' => 'em_andamento']),
-        'tone' => 'blue',
-    ],
-    [
-        'label' => __('Resolvidos'),
-        'count' => $counts['resolvido'],
-        'icon' => 'check-circle',
-        'href' => route('admin.tickets.index', ['status' => 'resolvido']),
-        'tone' => 'green',
-    ],
 ];
+
+foreach (TicketStatusModel::query()->orderBy('sort_order')->get() as $status) {
+    $stats[] = [
+        'label' => $status->label,
+        'count' => $statusCounts[$status->name] ?? 0,
+        'icon' => 'flag',
+        'href' => route('admin.tickets.index', ['status' => $status->name]),
+        'tone' => $status->color,
+    ];
+}
 
 $tones = [
     'neutral' => [
+        'icon' => 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300',
+        'value' => 'text-zinc-900 dark:text-white',
+        'label' => 'text-zinc-500 dark:text-zinc-400',
+    ],
+    'zinc' => [
         'icon' => 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300',
         'value' => 'text-zinc-900 dark:text-white',
         'label' => 'text-zinc-500 dark:text-zinc-400',
@@ -65,6 +70,11 @@ $tones = [
         'icon' => 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300',
         'value' => 'text-amber-700 dark:text-amber-300',
         'label' => 'text-amber-600/80 dark:text-amber-400/70',
+    ],
+    'yellow' => [
+        'icon' => 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-300',
+        'value' => 'text-yellow-700 dark:text-yellow-300',
+        'label' => 'text-yellow-600/80 dark:text-yellow-400/70',
     ],
     'blue' => [
         'icon' => 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
@@ -75,6 +85,21 @@ $tones = [
         'icon' => 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300',
         'value' => 'text-green-700 dark:text-green-300',
         'label' => 'text-green-600/80 dark:text-green-400/70',
+    ],
+    'red' => [
+        'icon' => 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',
+        'value' => 'text-red-700 dark:text-red-300',
+        'label' => 'text-red-600/80 dark:text-red-400/70',
+    ],
+    'purple' => [
+        'icon' => 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300',
+        'value' => 'text-purple-700 dark:text-purple-300',
+        'label' => 'text-purple-600/80 dark:text-purple-400/70',
+    ],
+    'orange' => [
+        'icon' => 'bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-300',
+        'value' => 'text-orange-700 dark:text-orange-300',
+        'label' => 'text-orange-600/80 dark:text-orange-400/70',
     ],
 ];
 

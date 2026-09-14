@@ -6,6 +6,8 @@ use Livewire\Component;
 
 new class extends Component
 {
+    public string $activeTab = 'reports';
+
     public bool $showModal = false;
 
     public ?int $editingId = null;
@@ -98,16 +100,59 @@ new class extends Component
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <flux:heading size="lg">{{ __('Relatórios') }}</flux:heading>
-            <flux:text class="mt-1">{{ __('Gerencie os tipos de relatório disponíveis para abertura de tickets.') }}</flux:text>
-            <flux:text class="mt-2 text-sm font-medium">{{ count($this->reportTypes) }} {{ __('tipos cadastrados') }}</flux:text>
+            <flux:text class="mt-1">{{ __('Gerencie os tipos de relatório e os status dos tickets.') }}</flux:text>
         </div>
-
-        <flux:button wire:click="openCreate" variant="primary" icon="plus">
-            {{ __('Novo Tipo') }}
-        </flux:button>
     </div>
 
-    @if (empty($this->reportTypes))
+    <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div
+            role="group"
+            aria-label="{{ __('Alternar entre seções') }}"
+            class="inline-flex w-fit items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-800/70"
+        >
+            @php
+                $tabClasses = fn ($active) => 'inline-flex h-9 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-4 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-400 dark:focus-visible:outline-zinc-500 ' . ($active
+                    ? 'bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900'
+                    : 'text-zinc-500 hover:bg-zinc-200/40 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white');
+            @endphp
+
+            <button
+                type="button"
+                wire:key="tab-reports"
+                wire:click="$wire.set('activeTab', 'reports')"
+                aria-pressed="{{ $this->activeTab === 'reports' ? 'true' : 'false' }}"
+                class="{{ $tabClasses($this->activeTab === 'reports') }}"
+            >
+                <flux:icon name="document-text" class="size-4" />
+                {{ __('Tipos de Relatório') }}
+            </button>
+
+            <button
+                type="button"
+                wire:key="tab-statuses"
+                wire:click="$wire.set('activeTab', 'statuses')"
+                aria-pressed="{{ $this->activeTab === 'statuses' ? 'true' : 'false' }}"
+                class="{{ $tabClasses($this->activeTab === 'statuses') }}"
+            >
+                <flux:icon name="flag" class="size-4" />
+                {{ __('Status de Tickets') }}
+            </button>
+        </div>
+    </div>
+
+    @if ($this->activeTab === 'reports')
+        <div class="space-y-6">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <flux:text class="mt-2 text-sm font-medium">{{ count($this->reportTypes) }} {{ __('tipos cadastrados') }}</flux:text>
+            </div>
+
+            <flux:button wire:click="openCreate" variant="primary" icon="plus">
+                {{ __('Novo Tipo') }}
+            </flux:button>
+        </div>
+
+        @if (empty($this->reportTypes))
         <flux:card class="py-16 text-center">
             <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-400">
                 <flux:icon name="document-text" class="size-6" />
@@ -228,5 +273,9 @@ new class extends Component
                 </div>
             </form>
         </flux:modal>
+    @endif
+        </div>
+    @else
+        <livewire:admin.ticket-status-list />
     @endif
 </div>

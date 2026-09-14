@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\TicketStatus;
 use App\Models\Ticket;
+use App\Models\TicketStatus;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -23,26 +23,19 @@ new class extends Component
     {
         return [
             'total' => Ticket::count(),
-            'aberto' => Ticket::where('status', TicketStatus::Aberto)->count(),
-            'em_andamento' => Ticket::where('status', TicketStatus::EmAndamento)->count(),
-            'resolvido' => Ticket::where('status', TicketStatus::Resolvido)->count(),
+            ...TicketStatus::query()
+                ->orderBy('sort_order')
+                ->get()
+                ->mapWithKeys(fn (TicketStatus $status) => [
+                    $status->name => Ticket::where('status', $status->name)->count(),
+                ]),
         ];
     }
 
     #[Computed]
-    public function statuses(): array
+    public function statuses(): \Illuminate\Database\Eloquent\Collection
     {
-        return TicketStatus::cases();
-    }
-
-    #[Computed]
-    public function statusDotColors(): array
-    {
-        return [
-            'aberto' => 'bg-amber-500',
-            'em_andamento' => 'bg-blue-500',
-            'resolvido' => 'bg-green-500',
-        ];
+        return TicketStatus::query()->active()->orderBy('sort_order')->orderBy('label')->get();
     }
 
     public function updatedSearch(): void
@@ -122,14 +115,14 @@ new class extends Component
             @foreach ($this->statuses as $status)
                 <button
                     type="button"
-                    wire:key="filter-{{ $status->value }}"
-                    wire:click="$wire.set('status', '{{ $status->value }}')"
-                    aria-pressed="{{ $this->status === $status->value ? 'true' : 'false' }}"
-                    class="{{ $filterButtonClasses($this->status === $status->value) }}"
+                    wire:key="filter-{{ $status->name }}"
+                    wire:click="$wire.set('status', '{{ $status->name }}')"
+                    aria-pressed="{{ $this->status === $status->name ? 'true' : 'false' }}"
+                    class="{{ $filterButtonClasses($this->status === $status->name) }}"
                 >
-                    <span class="size-1.5 shrink-0 rounded-full {{ $this->statusDotColors[$status->value] }}"></span>
-                    {{ $status->label() }}
-                    <span class="text-xs font-semibold tracking-tight">{{ $this->counts[$status->value] }}</span>
+                    <span class="size-1.5 shrink-0 rounded-full bg-{{ $status->color }}-500"></span>
+                    {{ $status->label }}
+                    <span class="text-xs font-semibold tracking-tight">{{ $this->counts[$status->name] }}</span>
                 </button>
             @endforeach
         </div>
@@ -200,8 +193,8 @@ new class extends Component
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:badge color="{{ $ticket->status->color() }}" size="sm">
-                                    {{ $ticket->status->label() }}
+                                <flux:badge color="{{ $ticket->statusColor() }}" size="sm">
+                                    {{ $ticket->statusLabel() }}
                                 </flux:badge>
                             </flux:table.cell>
                             <flux:table.cell>

@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
-use App\Enums\TicketStatus;
 use App\Models\Ticket;
+use App\Models\TicketStatus;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
@@ -13,8 +13,8 @@ class TicketStatusUpdatedNotification extends Notification
 {
     public function __construct(
         public readonly Ticket $ticket,
-        public readonly TicketStatus $oldStatus,
-        public readonly TicketStatus $newStatus,
+        public readonly string $oldStatus,
+        public readonly string $newStatus,
         public readonly ?string $actorName,
     ) {}
 
@@ -26,6 +26,13 @@ class TicketStatusUpdatedNotification extends Notification
         return ['database', 'mail', WebPushChannel::class];
     }
 
+    private function label(string $status): string
+    {
+        return TicketStatus::where('name', $status)->value('label')
+            ?? \App\Enums\TicketStatus::tryFrom($status)?->label()
+            ?? $status;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -34,10 +41,10 @@ class TicketStatusUpdatedNotification extends Notification
         return [
             'ticket_id' => $this->ticket->id,
             'tracking_code' => $this->ticket->tracking_code,
-            'old_status' => $this->oldStatus->label(),
-            'new_status' => $this->newStatus->label(),
+            'old_status' => $this->label($this->oldStatus),
+            'new_status' => $this->label($this->newStatus),
             'actor_name' => $this->actorName,
-            'message' => 'Ticket '.$this->ticket->tracking_code.' atualizado para '.$this->newStatus->label().'.',
+            'message' => 'Ticket '.$this->ticket->tracking_code.' atualizado para '.$this->label($this->newStatus).'.',
         ];
     }
 
@@ -46,7 +53,7 @@ class TicketStatusUpdatedNotification extends Notification
         $mail = (new MailMessage)
             ->subject('Ticket '.$this->ticket->tracking_code.' atualizado')
             ->greeting('Olá, '.$notifiable->name.'!')
-            ->line('O ticket **'.$this->ticket->tracking_code.'** teve o status atualizado de '.$this->oldStatus->label().' para **'.$this->newStatus->label().'**.')
+            ->line('O ticket **'.$this->ticket->tracking_code.'** teve o status atualizado de '.$this->label($this->oldStatus).' para **'.$this->label($this->newStatus).'**.')
             ->action('Ver ticket', route('admin.tickets.show', $this->ticket));
 
         if ($this->actorName !== null) {
@@ -58,7 +65,7 @@ class TicketStatusUpdatedNotification extends Notification
 
     public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
     {
-        $body = 'Status: '.$this->oldStatus->label().' → '.$this->newStatus->label().'.';
+        $body = 'Status: '.$this->label($this->oldStatus).' → '.$this->label($this->newStatus).'.';
 
         if ($this->actorName !== null) {
             $body .= ' Atualizado por: '.$this->actorName.'.';

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Ticket;
+use App\Models\TicketStatus;
 use App\Models\User;
 use App\Notifications\NewTicketNotification;
 use App\Notifications\TicketResponseSavedNotification;
@@ -53,6 +54,7 @@ it('notifies the rest of the staff when a ticket status is updated', function ()
     $operator = User::factory()->operator()->create();
     $supervisor = User::factory()->supervisor()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
+    TicketStatus::factory()->create(['name' => 'em_andamento', 'label' => 'Em Andamento']);
 
     $this->actingAs($admin);
 
@@ -78,6 +80,7 @@ it('emails the rest of the staff when a ticket status is updated', function () {
     $admin = User::factory()->admin()->create();
     $operator = User::factory()->operator()->create();
     $ticket = Ticket::factory()->create(['status' => 'aberto']);
+    TicketStatus::factory()->create(['name' => 'resolvido', 'label' => 'Resolvido']);
 
     $this->actingAs($admin);
 
