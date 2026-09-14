@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ReportType;
+use App\Models\Station;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Notifications\NewTicketNotification;
@@ -25,6 +26,28 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
         return ReportType::query()->active()->orderBy('sort_order')->orderBy('name')->get();
     }
 
+    #[Computed]
+    public function stationSuggestions(): \Illuminate\Database\Eloquent\Collection
+    {
+        $query = mb_strtoupper(trim($this->site_id));
+
+        if ($query === '') {
+            return new \Illuminate\Database\Eloquent\Collection;
+        }
+
+        return Station::query()
+            ->active()
+            ->where('site_id', 'like', "%{$query}%")
+            ->orderBy('site_id')
+            ->limit(8)
+            ->get();
+    }
+
+    public function selectStation(string $siteId): void
+    {
+        $this->site_id = $siteId;
+    }
+
     protected function rules(): array
     {
         $hasReportTypes = ReportType::query()->active()->exists();
@@ -43,10 +66,14 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
     {
         $this->validate();
 
+        $siteId = mb_strtoupper(trim($this->site_id));
+        $technicianName = trim($this->technician_name);
+        $reportDescription = trim($this->report_description);
+
         $ticket = Ticket::create([
-            'site_id' => $this->site_id,
-            'technician_name' => $this->technician_name,
-            'report_description' => $this->report_description,
+            'site_id' => $siteId,
+            'technician_name' => $technicianName,
+            'report_description' => $reportDescription,
             'checked_in' => $this->checked_in,
         ]);
 
@@ -141,10 +168,57 @@ new #[Layout('layouts::public'), Title('Solicitar Ticket')] class extends Compon
             </flux:button>
         </div>
 
-        <form wire:submit="submit" id="ticket-form" class="space-y-6 border-t border-zinc-200 pt-6 scroll-mt-24 dark:border-zinc-700">
+        <form wire:submit="submit" id="ticket-form" x-ref="form" class="space-y-6 border-t border-zinc-200 pt-6 scroll-mt-24 dark:border-zinc-700">
             <flux:field>
                 <flux:label>Site ID</flux:label>
-                <flux:input wire:model="site_id" placeholder="Ex: SITE-0012" />
+                <div class="relative" x-data="{ open: false, focusIndex: -1 }">
+                    <flux:input
+                        wire:model.live="site_id"
+                        placeholder="Ex: SITE-0012"
+                        autocomplete="off"
+                        x-ref="input"
+                        @input="open = true"
+                        @focus="open = $wire.stationSuggestions.length > 0"
+                        @keydown.down.prevent="open = true; focusIndex = Math.min(focusIndex + 1, $wire.stationSuggestions.length - 1)"
+                        @keydown.up.prevent="focusIndex = Math.max(focusIndex - 1, 0)"
+                        @keydown.enter.prevent="
+                            if (focusIndex >= 0 && $wire.stationSuggestions[focusIndex]) {
+                                $wire.selectStation($wire.stationSuggestions[focusIndex].site_id);
+                                open = false;
+                            } else {
+                                $refs.form.requestSubmit();
+                            }
+                        "
+                        @click.outside="open = false"
+                    />
+                    <flux:icon name="chevron-down" class="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+
+                    @if ($this->stationSuggestions->isNotEmpty())
+                        <div
+                            x-show="open"
+                            x-cloak
+                            class="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
+                        >
+                            <ul class="max-h-60 overflow-y-auto py-1">
+                                @foreach ($this->stationSuggestions as $station)
+                                    <li>
+                                        <button
+                                            type="button"
+                                            wire:key="station-suggestion-{{ $station->id }}"
+                                            wire:click="selectStation('{{ $station->site_id }}')"
+                                            @click="open = false"
+                                            class="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-zinc-50 dark:hover:bg-white/10"
+                                        >
+                                            <span class="font-mono font-medium">{{ $station->site_id }}</span>
+                                            <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ $station->city ? $station->city.'/'.$station->state : '' }}</span>
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
+                <flux:description>Digite o código do site para buscar entre as estações cadastradas.</flux:description>
                 <flux:error name="site_id" />
             </flux:field>
 

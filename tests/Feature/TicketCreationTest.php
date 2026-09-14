@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Station;
 use App\Models\Ticket;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Livewire;
 
 it('renders the public ticket creation form', function () {
@@ -101,4 +103,66 @@ it('shows copy and tracking buttons after creating a ticket', function () {
 
     $component->assertSee(route('tickets.status', ['q' => $code]))
         ->assertSee('writeText');
+});
+
+it('offers registered stations as suggestions for the site id', function () {
+    Station::factory()->create(['site_id' => '4G-ABLAJ1']);
+    Station::factory()->create(['site_id' => '4G-HU6713']);
+
+    Livewire::test('ticket-form')
+        ->set('site_id', '4G-')
+        ->assertSee('4G-ABLAJ1')
+        ->assertSee('4G-HU6713');
+});
+
+it('filters station suggestions as the user types', function () {
+    Station::factory()->create(['site_id' => '4G-ABLAJ1']);
+    Station::factory()->create(['site_id' => '4G-HU6713']);
+
+    Livewire::test('ticket-form')
+        ->set('site_id', 'ABLA')
+        ->assertSee('4G-ABLAJ1')
+        ->assertDontSee('4G-HU6713');
+});
+
+it('selects a station from the suggestions', function () {
+    Station::factory()->create(['site_id' => '4G-ABLAJ1']);
+
+    Livewire::test('ticket-form')
+        ->set('site_id', '4G-')
+        ->call('selectStation', '4G-ABLAJ1')
+        ->assertSet('site_id', '4G-ABLAJ1');
+});
+
+it('shows no suggestions when the site id field is empty', function () {
+    Station::factory()->create(['site_id' => '4G-ABLAJ1']);
+
+    Livewire::test('ticket-form')
+        ->assertSet('stationSuggestions', new Collection);
+});
+
+it('creates a ticket with an unregistered site id', function () {
+    Livewire::test('ticket-form')
+        ->set('site_id', '4G-NOVO123')
+        ->set('technician_name', 'João Silva')
+        ->set('report_description', 'Site não cadastrado.')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('tickets', ['site_id' => '4G-NOVO123']);
+});
+
+it('sanitizes and normalizes the submitted values', function () {
+    Livewire::test('ticket-form')
+        ->set('site_id', '  site-001  ')
+        ->set('technician_name', '  João Silva  ')
+        ->set('report_description', '  Teste com espaços.  ')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('tickets', [
+        'site_id' => 'SITE-001',
+        'technician_name' => 'João Silva',
+        'report_description' => 'Teste com espaços.',
+    ]);
 });
